@@ -65,16 +65,20 @@ export default function Header({ activeSection }) {
         <div className="header-actions">
           <Link
             to="/track"
-            className={`header-track-link${
+            className={`header-track${
               location.pathname === "/track" ? " is-active" : ""
             }`}
             onClick={closeMenu}
+            aria-label="Track your order"
           >
-            Track order
+            <span className="header-track__radar" aria-hidden="true">
+              <i className="fa-solid fa-location-crosshairs"></i>
+            </span>
+            <span className="header-track__text">
+              <small>Live</small>
+              <strong>Track order</strong>
+            </span>
           </Link>
-          <span className="festival-chip">
-            <i className="fa-solid fa-star"></i> Celebration Sale
-          </span>
           <Link
             to="/cart"
             className="cart-btn"
