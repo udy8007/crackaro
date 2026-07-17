@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { supabase } from "../db/supabase.js";
+import { adminAuth } from "../middleware/adminAuth.js";
 
 const router = Router();
 
@@ -51,7 +52,7 @@ router.post("/", async (req, res) => {
   }
 });
 
-router.get("/", async (_req, res) => {
+router.get("/", adminAuth, async (_req, res) => {
   try {
     if (!supabase) {
       return res.status(503).json({ message: "Database is not configured." });

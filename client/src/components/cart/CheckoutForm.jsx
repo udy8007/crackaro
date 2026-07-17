@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { getPaymentConfig, placeOrder } from "../../api/orders";
+import { quoteShipping } from "../../api/shipping";
 import { formatPrice, useCart } from "../../context/CartContext";
 
 const INITIAL = {
@@ -14,9 +15,11 @@ const INITIAL = {
 };
 
 export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
-  const { items, total, clearCart } = useCart();
+  const { items, total: subtotal, clearCart } = useCart();
   const [form, setForm] = useState(INITIAL);
   const [config, setConfig] = useState(null);
+  const [shipping, setShipping] = useState(null);
+  const [shippingLoading, setShippingLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState("");
 
@@ -28,21 +31,62 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
           upiId: "sparklecrackers@upi",
           payeeName: "Sparkle Crackers",
           note: "Pay via UPI and enter UTR below.",
+          utrHint: "8–22 alphanumeric characters.",
+          utrPattern: "^[A-Za-z0-9]{8,22}$",
         })
       );
   }, []);
 
+  useEffect(() => {
+    const pin = form.pincode.trim();
+    if (!/^\d{6}$/.test(pin)) {
+      setShipping(null);
+      return undefined;
+    }
+
+    let alive = true;
+    setShippingLoading(true);
+    quoteShipping({
+      pincode: pin,
+      subtotal,
+      state: form.state,
+    })
+      .then((quote) => {
+        if (alive) setShipping(quote);
+      })
+      .catch((err) => {
+        if (alive) {
+          setShipping({
+            serviceable: false,
+            fee: 0,
+            message: err.message || "Could not calculate shipping.",
+          });
+        }
+      })
+      .finally(() => {
+        if (alive) setShippingLoading(false);
+      });
+
+    return () => {
+      alive = false;
+    };
+  }, [form.pincode, form.state, subtotal]);
+
+  const shippingFee = shipping?.serviceable ? Number(shipping.fee) || 0 : 0;
+  const grandTotal = subtotal + shippingFee;
+  const canPay = Boolean(shipping?.serviceable) && items.length > 0;
+
   const upiLink = useMemo(() => {
-    if (!config) return "";
+    if (!config || !canPay) return "";
     const params = new URLSearchParams({
       pa: config.upiId,
       pn: config.payeeName,
-      am: String(total),
+      am: String(grandTotal),
       cu: "INR",
       tn: "Sparkle Crackers Order",
     });
     return `upi://pay?${params.toString()}`;
-  }, [config, total]);
+  }, [config, canPay, grandTotal]);
 
   const qrUrl = useMemo(() => {
     if (!upiLink) return "";
@@ -51,19 +95,48 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
 
   const updateField = (event) => {
     const { name, value } = event.target;
+    if (name === "utr") {
+      setForm((prev) => ({
+        ...prev,
+        utr: value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 22),
+      }));
+      return;
+    }
+    if (name === "pincode") {
+      setForm((prev) => ({
+        ...prev,
+        pincode: value.replace(/\D/g, "").slice(0, 6),
+      }));
+      return;
+    }
     setForm((prev) => ({ ...prev, [name]: value }));
   };
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     setError("");
-    setSubmitting(true);
 
+    if (!shipping?.serviceable) {
+      setError(shipping?.message || "Enter a serviceable pincode first.");
+      return;
+    }
+
+    const utr = form.utr.trim().toUpperCase();
+    if (!/^[A-Z0-9]{8,22}$/.test(utr)) {
+      setError("UTR must be 8–22 letters/numbers (no spaces).");
+      return;
+    }
+
+    setSubmitting(true);
     try {
       const result = await placeOrder({
         ...form,
-        items,
-        total,
+        utr,
+        items: items.map((item) => ({
+          id: item.id,
+          type: item.type,
+          qty: item.qty,
+        })),
       });
       clearCart();
       onSuccess?.(result.order);
@@ -169,6 +242,21 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
             onChange={updateField}
             placeholder="6-digit pincode"
           />
+          {shippingLoading ? (
+            <p className="checkout-shipping-note">Calculating shipping…</p>
+          ) : null}
+          {shipping ? (
+            <p
+              className={`checkout-shipping-note${
+                shipping.serviceable ? "" : " checkout-shipping-note--error"
+              }`}
+            >
+              {shipping.message}
+              {shipping.serviceable
+                ? ` · Shipping ${formatPrice(shipping.fee)}`
+                : ""}
+            </p>
+          ) : null}
         </div>
       </div>
 
@@ -177,11 +265,29 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
         <p className="checkout-note">
           {config?.note || "Scan QR, pay the exact amount, then enter UTR."}
         </p>
+        <div className="checkout-totals">
+          <div>
+            <span>Subtotal</span>
+            <strong>{formatPrice(subtotal)}</strong>
+          </div>
+          <div>
+            <span>Shipping</span>
+            <strong>
+              {shipping?.serviceable ? formatPrice(shippingFee) : "—"}
+            </strong>
+          </div>
+          <div className="checkout-totals__grand">
+            <span>Pay exactly</span>
+            <strong>{canPay ? formatPrice(grandTotal) : "—"}</strong>
+          </div>
+        </div>
         <div className="checkout-qr-wrap">
           {qrUrl ? (
             <img src={qrUrl} alt="UPI payment QR code" className="checkout-qr" />
           ) : (
-            <div className="checkout-qr checkout-qr--loading">Loading QR…</div>
+            <div className="checkout-qr checkout-qr--loading">
+              {canPay ? "Loading QR…" : "Enter a serviceable pincode for QR"}
+            </div>
           )}
           <div className="checkout-upi-meta">
             <p>
@@ -191,7 +297,8 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
               <strong>Payee:</strong> {config?.payeeName || "Sparkle Crackers"}
             </p>
             <p>
-              <strong>Amount:</strong> {formatPrice(total)}
+              <strong>Amount:</strong>{" "}
+              {canPay ? formatPrice(grandTotal) : "—"}
             </p>
             {upiLink ? (
               <a className="btn btn-outline btn-sm" href={upiLink}>
@@ -206,11 +313,17 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
             id="co-utr"
             name="utr"
             required
-            minLength={6}
+            minLength={8}
+            maxLength={22}
+            pattern="[A-Za-z0-9]{8,22}"
             value={form.utr}
             onChange={updateField}
-            placeholder="Enter UTR after payment"
+            placeholder="e.g. 123456789012"
+            autoComplete="off"
           />
+          <p className="checkout-shipping-note">
+            {config?.utrHint || "8–22 letters/numbers from your bank SMS."}
+          </p>
         </div>
       </div>
 
@@ -219,10 +332,12 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
       <button
         type="submit"
         className="btn btn-primary btn-block btn-lg"
-        disabled={submitting || items.length === 0}
+        disabled={submitting || !canPay || form.utr.length < 8}
       >
         <i className="fa-solid fa-lock"></i>{" "}
-        {submitting ? "Placing order..." : `Place order · ${formatPrice(total)}`}
+        {submitting
+          ? "Placing order..."
+          : `Place order · ${canPay ? formatPrice(grandTotal) : "—"}`}
       </button>
     </form>
   );

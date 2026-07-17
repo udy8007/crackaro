@@ -63,6 +63,15 @@ export default function Header({ activeSection }) {
         </nav>
 
         <div className="header-actions">
+          <Link
+            to="/track"
+            className={`header-track-link${
+              location.pathname === "/track" ? " is-active" : ""
+            }`}
+            onClick={closeMenu}
+          >
+            Track order
+          </Link>
           <span className="festival-chip">
             <i className="fa-solid fa-star"></i> Celebration Sale
           </span>

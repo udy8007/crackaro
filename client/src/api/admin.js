@@ -58,3 +58,10 @@ export async function updateOrderStatus(token, orderId, payload) {
   });
   return parseJson(response);
 }
+
+export async function fetchAdminEnquiries(token) {
+  const response = await fetch(`${API_BASE}/enquiries`, {
+    headers: authHeaders(token),
+  });
+  return parseJson(response);
+}

@@ -1,3 +1,5 @@
+import { Link } from "react-router-dom";
+
 export default function Footer() {
   return (
     <footer className="footer">
@@ -58,7 +60,7 @@ export default function Footer() {
               <a href="#contact">Contact</a>
             </li>
             <li>
-              <a href="#contact">Wholesale Enquiry</a>
+              <Link to="/track">Track order</Link>
             </li>
             <li>
               <a href="#safety">Safety Policy</a>
@@ -68,7 +70,7 @@ export default function Footer() {
         <div>
           <h4>Order Info</h4>
           <ul>
-            <li>Minimum order applies for shipping</li>
+            <li>Free shipping above ₹3,000</li>
             <li>Delivery timelines vary by location</li>
             <li>Follow local fireworks regulations</li>
             <li>Use only as per safety instructions</li>

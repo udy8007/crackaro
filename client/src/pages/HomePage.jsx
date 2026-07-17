@@ -4,7 +4,6 @@ import Topbar from "../components/layout/Topbar";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import BackToTop from "../components/layout/BackToTop";
-import CartToast from "../components/cart/CartToast";
 import Hero from "../components/sections/Hero";
 import Trust from "../components/sections/Trust";
 import Categories from "../components/sections/Categories";
@@ -56,7 +55,6 @@ export default function HomePage() {
       </main>
       <Footer />
       <BackToTop />
-      <CartToast />
     </>
   );
 }

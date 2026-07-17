@@ -4,7 +4,6 @@ import FestivalBanner from "../components/layout/FestivalBanner";
 import Topbar from "../components/layout/Topbar";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
-import CartToast from "../components/cart/CartToast";
 import CheckoutForm from "../components/cart/CheckoutForm";
 import { formatPrice, useCart } from "../context/CartContext";
 
@@ -47,11 +46,16 @@ export default function CartPage() {
                 </div>
               </div>
               <div className="cart-success-panel__actions">
-                <Link to="/#products" className="btn btn-primary">
-                  Continue shopping
+                <Link
+                  to={`/track?order=${encodeURIComponent(
+                    placedOrder.order_number || ""
+                  )}&phone=${encodeURIComponent(placedOrder.phone || "")}`}
+                  className="btn btn-primary"
+                >
+                  Track this order
                 </Link>
-                <Link to="/" className="btn btn-outline">
-                  Back to home
+                <Link to="/#products" className="btn btn-outline">
+                  Continue shopping
                 </Link>
               </div>
             </section>
@@ -247,7 +251,6 @@ export default function CartPage() {
         </div>
       </main>
       <Footer />
-      <CartToast />
     </>
   );
 }

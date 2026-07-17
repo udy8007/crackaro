@@ -45,18 +45,28 @@ export function CartProvider({ children }) {
 
   const addItem = useCallback((item) => {
     const cartId = item.cartId || `${item.type}-${item.id}`;
+    const maxStock =
+      Number.isFinite(Number(item.maxStock)) ? Number(item.maxStock) : Infinity;
+    const addQty = Math.max(1, Math.floor(Number(item.qty) || 1));
+
+    if (maxStock <= 0) return;
+
     setItems((prev) => {
       const existing = prev.find((row) => row.cartId === cartId);
       if (existing) {
+        const nextQty = Math.min(existing.qty + addQty, maxStock);
+        if (nextQty === existing.qty) return prev;
         return prev.map((row) =>
-          row.cartId === cartId ? { ...row, qty: row.qty + 1 } : row
+          row.cartId === cartId
+            ? { ...row, qty: nextQty, maxStock }
+            : row
         );
       }
       return [
         ...prev,
         {
           cartId,
-          id: item.id,
+          id: String(item.id),
           type: item.type,
           name: item.name,
           price: item.price,
@@ -64,11 +74,11 @@ export function CartProvider({ children }) {
           unit: item.unit || "",
           icon: item.icon || "fa-bag-shopping",
           mediaClass: item.mediaClass || "c-orange",
-          qty: 1,
+          maxStock,
+          qty: Math.min(addQty, maxStock),
         },
       ];
     });
-    setToast(`${item.name} added to cart`);
   }, []);
 
   const removeItem = useCallback((cartId) => {
@@ -82,7 +92,13 @@ export function CartProvider({ children }) {
       return;
     }
     setItems((prev) =>
-      prev.map((row) => (row.cartId === cartId ? { ...row, qty: next } : row))
+      prev.map((row) => {
+        if (row.cartId !== cartId) return row;
+        const max = Number.isFinite(Number(row.maxStock))
+          ? Number(row.maxStock)
+          : Infinity;
+        return { ...row, qty: Math.min(next, max) };
+      })
     );
   }, []);
 

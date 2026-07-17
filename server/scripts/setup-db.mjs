@@ -17,7 +17,7 @@ if (!connectionString) {
   process.exit(1);
 }
 
-const sqlFiles = ["schema.sql", "admin.sql"].map((name) =>
+const sqlFiles = ["schema.sql", "admin.sql", "catalog.sql"].map((name) =>
   path.resolve(__dirname, "../sql", name)
 );
 
@@ -42,7 +42,7 @@ for (const sqlPath of sqlFiles) {
 const tables = await client.query(
   `select table_name from information_schema.tables
    where table_schema = 'public'
-     and table_name in ('orders', 'enquiries', 'admin_otps', 'admin_sessions')
+     and table_name in ('orders', 'enquiries', 'admin_otps', 'admin_sessions', 'products', 'packs')
    order by table_name`
 );
 console.log(

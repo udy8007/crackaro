@@ -22,9 +22,10 @@ export async function placeOrder(payload) {
   return parseJson(response);
 }
 
-export async function trackOrder(orderNumber) {
+export async function trackOrder(orderNumber, phone) {
+  const params = new URLSearchParams({ phone: String(phone || "") });
   const response = await fetch(
-    `${API_BASE}/orders/track/${encodeURIComponent(orderNumber)}`
+    `${API_BASE}/orders/track/${encodeURIComponent(orderNumber)}?${params}`
   );
   return parseJson(response);
 }
