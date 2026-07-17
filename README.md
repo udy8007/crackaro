@@ -14,10 +14,25 @@ Full-stack ecommerce:
 4. Order saved as `payment_submitted`  
 5. Admin verifies UTR and updates status  
 
-## Admin
+## Admin (email OTP only)
 
 Open http://localhost:5173/admin  
-Login with `ADMIN_SECRET` from `server/.env`.
+
+1. Enter authorized `ADMIN_EMAIL`  
+2. Receive OTP by Nodemailer (SMTP)  
+3. Verify OTP → orders dashboard  
+
+Other emails are rejected. Mobile/SMS login is disabled.
+
+```env
+ADMIN_EMAIL=mr.mit97@gmail.com
+SMTP_HOST=smtp.gmail.com
+SMTP_PORT=587
+SMTP_USER=mr.mit97@gmail.com
+SMTP_PASS=your_gmail_app_password
+```
+
+Run admin tables once: `npm run setup:db --prefix server`
 
 Statuses: `payment_submitted` → `verified` / `rejected` → `packed` → `shipped` → `delivered`
 

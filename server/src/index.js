@@ -3,6 +3,7 @@ import express from "express";
 import cors from "cors";
 import enquiriesRouter from "./routes/enquiries.js";
 import ordersRouter from "./routes/orders.js";
+import adminAuthRouter from "./routes/adminAuth.js";
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -18,6 +19,7 @@ app.get("/api/health", (_req, res) => {
   });
 });
 
+app.use("/api/admin/auth", adminAuthRouter);
 app.use("/api/enquiries", enquiriesRouter);
 app.use("/api/orders", ordersRouter);
 

@@ -11,12 +11,15 @@ const connectionString =
   process.env.DATABASE_URL || process.env.POSTGRES_URL_NON_POOLING;
 
 if (!connectionString) {
-  console.error("Missing DATABASE_URL or POSTGRES_URL_NON_POOLING in server/.env");
+  console.error(
+    "Missing DATABASE_URL or POSTGRES_URL_NON_POOLING in server/.env"
+  );
   process.exit(1);
 }
 
-const sqlPath = path.resolve(__dirname, "../sql/schema.sql");
-const sql = fs.readFileSync(sqlPath, "utf8");
+const sqlFiles = ["schema.sql", "admin.sql"].map((name) =>
+  path.resolve(__dirname, "../sql", name)
+);
 
 const cleanUrl = connectionString
   .replace(/[?&]sslmode=[^&]*/g, "")
@@ -31,11 +34,15 @@ const client = new pg.Client({
 });
 
 await client.connect();
-console.log("Connected. Applying schema.sql...");
-await client.query(sql);
+for (const sqlPath of sqlFiles) {
+  const sql = fs.readFileSync(sqlPath, "utf8");
+  console.log(`Applying ${path.basename(sqlPath)}...`);
+  await client.query(sql);
+}
 const tables = await client.query(
   `select table_name from information_schema.tables
-   where table_schema = 'public' and table_name in ('orders', 'enquiries')
+   where table_schema = 'public'
+     and table_name in ('orders', 'enquiries', 'admin_otps', 'admin_sessions')
    order by table_name`
 );
 console.log(

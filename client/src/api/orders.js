@@ -29,21 +29,4 @@ export async function trackOrder(orderNumber) {
   return parseJson(response);
 }
 
-export async function fetchAdminOrders(adminKey) {
-  const response = await fetch(`${API_BASE}/orders`, {
-    headers: { "x-admin-key": adminKey },
-  });
-  return parseJson(response);
-}
-
-export async function updateOrderStatus(adminKey, orderId, payload) {
-  const response = await fetch(`${API_BASE}/orders/${orderId}/status`, {
-    method: "PATCH",
-    headers: {
-      "Content-Type": "application/json",
-      "x-admin-key": adminKey,
-    },
-    body: JSON.stringify(payload),
-  });
-  return parseJson(response);
-}
+export { fetchAdminOrders, updateOrderStatus } from "./admin.js";
