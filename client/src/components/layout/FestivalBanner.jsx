@@ -3,7 +3,7 @@ export default function FestivalBanner() {
     <div className="festival-banner">
       <div className="container festival-banner-inner">
         <span>
-          <i className="fa-solid fa-fire"></i> Festival Mode ON (test)
+          <i className="fa-solid fa-fire"></i> Festival Mode ON
         </span>
         <span className="festival-banner-sep">•</span>
         <span>
