@@ -259,10 +259,10 @@ export default function Hero() {
 
       <div className="container hero-inner">
         <div className="hero-content">
-          <p className="eyebrow"><i className="fa-solid fa-rocket"></i> Sky Shots &amp; Festival Crackers</p>
-          <h1>Light up the sky with <span className="text-gradient">premium Sky Shots</span></h1>
+          <p className="eyebrow"><i className="fa-solid fa-star"></i> Sivakasi Festival Collection</p>
+          <h1>Make every celebration <span className="text-gradient">truly memorable</span></h1>
           <p className="hero-text">
-            High-flying sky shots, gold sparklers, and Diwali celebration packs — authentic Sivakasi quality for homes, weddings, and grand events.
+            Discover carefully selected crackers, elegant gift boxes, and celebration packs — authentic Sivakasi quality for homes, weddings, and special events.
           </p>
           <div className="hero-cta">
             <a href="#products" className="btn btn-primary btn-lg">
@@ -312,48 +312,35 @@ export default function Hero() {
             </figure>
           </div>
           <div className="hero-panel">
-            <div className="hero-badge"><i className="fa-solid fa-rocket"></i> Sky Shot Special</div>
+            <div className="hero-badge"><i className="fa-solid fa-crown"></i> Curated Celebration Collection</div>
             <div className="hero-showcase">
-              <div className="skyshot-stage">
-                <div className="skyshot-stage__sky">
-                  <span className="skyshot-stage__star"></span>
-                  <span className="skyshot-stage__star"></span>
-                  <span className="skyshot-stage__star"></span>
-                  <span className="skyshot-stage__star"></span>
-                  <span className="skyshot-stage__star"></span>
-                  <span className="skyshot-stage__trail"></span>
-                  <span className="skyshot-stage__burst"></span>
+              <div className="hero-product-grid">
+                <div className="hero-mini hero-mini--sparkler">
+                  <span className="hero-mini__sparks">
+                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                  </span>
+                  <span className="hero-mini__label">Golden Sparklers</span>
                 </div>
-                <div className="skyshot-stage__battery">
-                  <div className="skyshot-tube">
-                    <span className="skyshot-tube__spark"></span>
-                    <span className="skyshot-tube__fuse"></span>
-                    <span className="skyshot-tube__cone"></span>
-                    <span className="skyshot-tube__barrel"><em>SKY</em></span>
-                  </div>
-                  <div className="skyshot-tube skyshot-tube--hero">
-                    <span className="skyshot-tube__spark"></span>
-                    <span className="skyshot-tube__fuse"></span>
-                    <span className="skyshot-tube__cone"></span>
-                    <span className="skyshot-tube__barrel"><em>SKY SHOT</em></span>
-                    <span className="skyshot-tube__glow"></span>
-                  </div>
-                  <div className="skyshot-tube">
-                    <span className="skyshot-tube__spark"></span>
-                    <span className="skyshot-tube__fuse"></span>
-                    <span className="skyshot-tube__cone"></span>
-                    <span className="skyshot-tube__barrel"><em>SKY</em></span>
-                  </div>
+                <div className="hero-mini hero-mini--gift hero-mini--featured">
+                  <span className="hero-mini__ribbon"></span>
+                  <span className="hero-mini__icon">
+                    <i className="fa-solid fa-gift"></i>
+                  </span>
+                  <span className="hero-mini__label">Signature Gift Box</span>
                 </div>
-                <div className="skyshot-stage__pad"></div>
-                <span className="skyshot-stage__badge"><i className="fa-solid fa-rocket"></i> Premium Sky Shots</span>
+                <div className="hero-mini hero-mini--rocket">
+                  <span className="hero-mini__icon">
+                    <i className="fa-solid fa-fire-flame-curved"></i>
+                  </span>
+                  <span className="hero-mini__label">Festive Favourites</span>
+                </div>
               </div>
-              <h2>Happy Festivals</h2>
-              <p>Diwali · Weddings · New Year · Special Events</p>
+              <h2>Celebrate in Style</h2>
+              <p>Diwali · Weddings · New Year · Every Special Moment</p>
               <div className="hero-festive-tags">
-                <span className="hero-festive-tags__hot"><i className="fa-solid fa-fire"></i> Sky Shots</span>
-                <span>Gold Sparks</span>
-                <span>Gift Packs</span>
+                <span className="hero-festive-tags__hot"><i className="fa-solid fa-star"></i> Best Sellers</span>
+                <span>Premium Quality</span>
+                <span>Gift Collections</span>
               </div>
             </div>
             <ul className="hero-points">
