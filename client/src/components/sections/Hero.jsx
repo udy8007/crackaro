@@ -1,7 +1,80 @@
+import { useEffect, useRef } from "react";
+import {
+  armSkyshotIntroOnGesture,
+  playSkyshotIntro,
+  preloadSkyshotSound,
+  stopSkyshotIntro,
+} from "../../utils/skyshotSound";
+
 export default function Hero() {
+  const heroRef = useRef(null);
+
+  useEffect(() => {
+    const el = heroRef.current;
+    if (!el) return;
+
+    let disposeGesture = () => {};
+    let visible = true;
+    let leaveTimer = 0;
+
+    preloadSkyshotSound();
+
+    const armUnlock = () => {
+      disposeGesture();
+      disposeGesture = armSkyshotIntroOnGesture();
+    };
+
+    armUnlock();
+    playSkyshotIntro();
+
+    const onHeroPointer = () => {
+      playSkyshotIntro();
+    };
+    el.addEventListener("pointerdown", onHeroPointer, { passive: true });
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        const nowVisible = entry.isIntersecting && entry.intersectionRatio >= 0.08;
+
+        if (nowVisible) {
+          if (leaveTimer) {
+            window.clearTimeout(leaveTimer);
+            leaveTimer = 0;
+          }
+          if (!visible) {
+            visible = true;
+            armUnlock();
+            playSkyshotIntro();
+          }
+          return;
+        }
+
+        if (visible && !leaveTimer) {
+          leaveTimer = window.setTimeout(() => {
+            leaveTimer = 0;
+            visible = false;
+            disposeGesture();
+            disposeGesture = () => {};
+            stopSkyshotIntro(false);
+          }, 400);
+        }
+      },
+      { threshold: [0, 0.08, 0.25, 0.5] }
+    );
+
+    observer.observe(el);
+
+    return () => {
+      observer.disconnect();
+      if (leaveTimer) window.clearTimeout(leaveTimer);
+      disposeGesture();
+      el.removeEventListener("pointerdown", onHeroPointer);
+    };
+  }, []);
+
   return (
     <>
-<section className="hero" id="home">
+<section className="hero" id="home" ref={heroRef}>
       {/* Top sky fill — celebration scene, bursts, garland */}
       <div className="hero-top-sky" aria-hidden="true">
         <div className="hero-top-glow"></div>
@@ -22,6 +95,40 @@ export default function Hero() {
         <div className="hero-top-sparks">
           <span></span><span></span><span></span><span></span><span></span><span></span>
           <span></span><span></span><span></span><span></span><span></span><span></span>
+        </div>
+
+        {/* Colorful skyshots flanking the cartoon — all screens */}
+        <div className="hero-side-skyshots" aria-hidden="true">
+          <span className="side-shot side-shot--left-a">
+            <i className="side-shot__rocket"></i>
+            <b className="side-shot__trail"></b>
+            <em className="side-shot__bloom"></em>
+          </span>
+          <span className="side-shot side-shot--left-b">
+            <i className="side-shot__rocket"></i>
+            <b className="side-shot__trail"></b>
+            <em className="side-shot__bloom side-shot__bloom--pink"></em>
+          </span>
+          <span className="side-shot side-shot--left-c">
+            <i className="side-shot__rocket"></i>
+            <b className="side-shot__trail"></b>
+            <em className="side-shot__bloom side-shot__bloom--orange"></em>
+          </span>
+          <span className="side-shot side-shot--right-a">
+            <i className="side-shot__rocket"></i>
+            <b className="side-shot__trail"></b>
+            <em className="side-shot__bloom side-shot__bloom--orange"></em>
+          </span>
+          <span className="side-shot side-shot--right-b">
+            <i className="side-shot__rocket"></i>
+            <b className="side-shot__trail"></b>
+            <em className="side-shot__bloom side-shot__bloom--violet"></em>
+          </span>
+          <span className="side-shot side-shot--right-c">
+            <i className="side-shot__rocket"></i>
+            <b className="side-shot__trail"></b>
+            <em className="side-shot__bloom"></em>
+          </span>
         </div>
 
         {/* Family celebration — fills empty sky band, no extra height */}
@@ -202,6 +309,28 @@ export default function Hero() {
         <i className="fa-solid fa-lightbulb"></i>
       </div>
 
+      {/* Mobile-only festive sky — skyshots & blooms (extra decor, desktop unchanged) */}
+      <div className="hero-mobile-festive" aria-hidden="true">
+        <span className="m-sky m-sky--1"><i></i><b></b></span>
+        <span className="m-sky m-sky--2"><i></i><b></b></span>
+        <span className="m-sky m-sky--3"><i></i><b></b></span>
+        <span className="m-sky m-sky--4"><i></i><b></b></span>
+        <span className="m-bloom m-bloom--1"></span>
+        <span className="m-bloom m-bloom--2"></span>
+        <span className="m-bloom m-bloom--3"></span>
+        <span className="m-bloom m-bloom--4"></span>
+        <span className="m-spark"></span>
+        <span className="m-spark"></span>
+        <span className="m-spark"></span>
+        <span className="m-spark"></span>
+        <span className="m-spark"></span>
+        <span className="m-spark"></span>
+        <span className="m-spark"></span>
+        <span className="m-spark"></span>
+        <span className="m-mortar m-mortar--left"></span>
+        <span className="m-mortar m-mortar--right"></span>
+      </div>
+
       {/* Cracker decorations — pure CSS, no external images */}
       <div className="hero-deco" aria-hidden="true">
         <div className="hero-burst hero-burst--1"></div>
@@ -267,9 +396,6 @@ export default function Hero() {
           <div className="hero-cta">
             <a href="#products" className="btn btn-primary btn-lg">
               <i className="fa-solid fa-bag-shopping"></i> Browse Products
-            </a>
-            <a href="#packs" className="btn btn-outline btn-lg">
-              <i className="fa-solid fa-gift"></i> View Festival Packs
             </a>
           </div>
           <div className="hero-meta">
