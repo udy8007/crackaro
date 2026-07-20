@@ -17,7 +17,7 @@ export default function Hero() {
   const heroRef = useRef(null);
   const [frame, setFrame] = useState(0);
 
-  // Snappy anime flipbook (~6 fps hard cuts)
+  // Very slow flipbook (~0.8 fps)
   useEffect(() => {
     SHINCHAN_FRAMES.forEach((src) => {
       const img = new Image();
@@ -25,7 +25,7 @@ export default function Hero() {
     });
     const id = window.setInterval(() => {
       setFrame((n) => (n + 1) % SHINCHAN_FRAMES.length);
-    }, 200);
+    }, 1200);
     return () => window.clearInterval(id);
   }, []);
 
