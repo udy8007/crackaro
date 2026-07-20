@@ -9,6 +9,7 @@ Full-stack ecommerce:
 
 1. Add products / packs to cart  
 2. **Place order** → enter name, mobile, address, city, state, pincode  
+3. test
 3. Scan **UPI QR**, pay total, enter **UTR**  
 4. Order saved as `payment_submitted`  
 5. Admin verifies UTR and updates status  
