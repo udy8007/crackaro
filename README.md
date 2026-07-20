@@ -1,4 +1,4 @@
-# Crackaro (Sparkle Crackers)1
+# Crackaro (Sparkle Crackers)
 Full-stack ecommerce:
 
 - **client/** — React shop + checkout + admin
