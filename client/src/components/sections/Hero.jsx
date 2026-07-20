@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   armSkyshotIntroOnGesture,
   playSkyshotIntro,
@@ -6,8 +6,28 @@ import {
   stopSkyshotIntro,
 } from "../../utils/skyshotSound";
 
+const SHINCHAN_FRAMES = [
+  "/images/shinchan-cut-1.png?v=2",
+  "/images/shinchan-cut-2.png?v=2",
+  "/images/shinchan-cut-3.png?v=2",
+  "/images/shinchan-cut-4.png?v=2",
+];
+
 export default function Hero() {
   const heroRef = useRef(null);
+  const [frame, setFrame] = useState(0);
+
+  // Snappy anime flipbook (~6 fps hard cuts)
+  useEffect(() => {
+    SHINCHAN_FRAMES.forEach((src) => {
+      const img = new Image();
+      img.src = src;
+    });
+    const id = window.setInterval(() => {
+      setFrame((n) => (n + 1) % SHINCHAN_FRAMES.length);
+    }, 200);
+    return () => window.clearInterval(id);
+  }, []);
 
   useEffect(() => {
     const el = heroRef.current;
@@ -97,41 +117,7 @@ export default function Hero() {
           <span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
 
-        {/* Colorful skyshots flanking the cartoon — all screens */}
-        <div className="hero-side-skyshots" aria-hidden="true">
-          <span className="side-shot side-shot--left-a">
-            <i className="side-shot__rocket"></i>
-            <b className="side-shot__trail"></b>
-            <em className="side-shot__bloom"></em>
-          </span>
-          <span className="side-shot side-shot--left-b">
-            <i className="side-shot__rocket"></i>
-            <b className="side-shot__trail"></b>
-            <em className="side-shot__bloom side-shot__bloom--pink"></em>
-          </span>
-          <span className="side-shot side-shot--left-c">
-            <i className="side-shot__rocket"></i>
-            <b className="side-shot__trail"></b>
-            <em className="side-shot__bloom side-shot__bloom--orange"></em>
-          </span>
-          <span className="side-shot side-shot--right-a">
-            <i className="side-shot__rocket"></i>
-            <b className="side-shot__trail"></b>
-            <em className="side-shot__bloom side-shot__bloom--orange"></em>
-          </span>
-          <span className="side-shot side-shot--right-b">
-            <i className="side-shot__rocket"></i>
-            <b className="side-shot__trail"></b>
-            <em className="side-shot__bloom side-shot__bloom--violet"></em>
-          </span>
-          <span className="side-shot side-shot--right-c">
-            <i className="side-shot__rocket"></i>
-            <b className="side-shot__trail"></b>
-            <em className="side-shot__bloom"></em>
-          </span>
-        </div>
-
-        {/* Family celebration — fills empty sky band, no extra height */}
+        {/* Shinchan-style anime GIF celebration — blends with cream sky */}
         <div className="hero-celeb">
           <div className="celeb-sky">
             <span className="celeb-rocket celeb-rocket--1"><i></i><b></b></span>
@@ -147,139 +133,17 @@ export default function Hero() {
           </div>
 
           <div className="celeb-stage">
-            <svg className="celeb-cast" viewBox="0 0 480 148" xmlns="http://www.w3.org/2000/svg" focusable="false">
-              <defs>
-                <radialGradient id="celeb-skin" cx="40%" cy="30%" r="68%">
-                  <stop offset="0%" stopColor="#f8d2bc"/>
-                  <stop offset="55%" stopColor="#e8a57a"/>
-                  <stop offset="100%" stopColor="#d4896a"/>
-                </radialGradient>
-                <linearGradient id="celeb-dad-shirt" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#3b82f6"/>
-                  <stop offset="100%" stopColor="#1d4ed8"/>
-                </linearGradient>
-                <linearGradient id="celeb-mom-dress" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#e11d48"/>
-                  <stop offset="100%" stopColor="#9f1239"/>
-                </linearGradient>
-                <linearGradient id="celeb-girl-dress" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#fb923c"/>
-                  <stop offset="100%" stopColor="#ea580c"/>
-                </linearGradient>
-                <linearGradient id="celeb-mortar-g" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#dc2626"/>
-                  <stop offset="40%" stopColor="#991b1b"/>
-                  <stop offset="100%" stopColor="#450a0a"/>
-                </linearGradient>
-                <linearGradient id="celeb-glow" x1="0" y1="1" x2="0" y2="0">
-                  <stop offset="0%" stopColor="#fbbf24" stopOpacity="0.5"/>
-                  <stop offset="100%" stopColor="#fbbf24" stopOpacity="0"/>
-                </linearGradient>
-                <radialGradient id="celeb-ground" cx="50%" cy="50%" r="50%">
-                  <stop offset="0%" stopColor="#c2410c" stopOpacity="0.22"/>
-                  <stop offset="100%" stopColor="#c2410c" stopOpacity="0"/>
-                </radialGradient>
-              </defs>
-
-              <ellipse className="celeb-ground" cx="240" cy="138" rx="210" ry="11" fill="url(#celeb-ground)"/>
-              <ellipse className="celeb-ground-glow" cx="240" cy="126" rx="190" ry="30" fill="url(#celeb-glow)" opacity="0.6"/>
-
-              {/* Dad */}
-              <g className="celeb-fig celeb-fig--dad">
-                <ellipse className="celeb-foot-shadow" cx="118" cy="137" rx="20" ry="4.5" fill="#9a3412" opacity="0.22"/>
-                <path d="M104 108c0 2 1 18 2 26h9c1-8 1-24 1-26z" fill="#1e3a8a"/>
-                <path d="M124 108c0 2 0 18 1 26h9c1-8 1-24 1-26z" fill="#1e3a8a"/>
-                <ellipse cx="109" cy="135" rx="6.5" ry="2.6" fill="#0f172a"/>
-                <ellipse cx="129" cy="135" rx="6.5" ry="2.6" fill="#0f172a"/>
-                <path d="M100 72c0-3 7-9 18-9s18 6 18 9v34c0 2-4 4-18 4s-18-2-18-4z" fill="url(#celeb-dad-shirt)"/>
-                <path d="M108 72h20v4H108z" fill="#93c5fd" opacity="0.55"/>
-                <path d="M102 78c-11 7-17 18-19 27" stroke="url(#celeb-dad-shirt)" strokeWidth="7.5" strokeLinecap="round" fill="none"/>
-                <circle cx="81" cy="107" r="4" fill="url(#celeb-skin)"/>
-                <g className="celeb-arm-up">
-                  <path d="M132 76c10-14 16-28 12-40" stroke="url(#celeb-dad-shirt)" strokeWidth="7.5" strokeLinecap="round" fill="none"/>
-                  <circle cx="142" cy="34" r="4" fill="url(#celeb-skin)"/>
-                  <line x1="142" y1="32" x2="150" y2="10" stroke="#a16207" strokeWidth="1.8" strokeLinecap="round"/>
-                  <circle className="celeb-spark-core" cx="152" cy="6" r="4.2" fill="#fde047"/>
-                  <circle cx="152" cy="6" r="7" fill="#fde047" opacity="0.25"/>
-                </g>
-                <rect x="113" y="62" width="10" height="8" rx="3" fill="url(#celeb-skin)"/>
-                <circle cx="118" cy="54" r="13" fill="url(#celeb-skin)"/>
-                <path d="M105 48c3-11 19-14 27-5-8 1-14 5-16 12z" fill="#1c1917"/>
-                <circle cx="113" cy="53" r="1.4" fill="#3f2a1e"/>
-                <circle cx="123" cy="53" r="1.4" fill="#3f2a1e"/>
-                <circle cx="113.4" cy="52.5" r="0.45" fill="#fff" opacity="0.75"/>
-                <circle cx="123.4" cy="52.5" r="0.45" fill="#fff" opacity="0.75"/>
-                <path d="M114 60c2.6 2.4 7 2.4 9.5 0" stroke="#a16207" strokeWidth="1.35" strokeLinecap="round" fill="none"/>
-              </g>
-
-              {/* Mom — sparkler wave like others */}
-              <g className="celeb-fig celeb-fig--mom">
-                <ellipse className="celeb-foot-shadow" cx="200" cy="137" rx="18" ry="4" fill="#9a3412" opacity="0.22"/>
-                <path d="M186 112c0 2 1 15 2 22h8c1-7 1-20 1-22z" fill="#881337"/>
-                <path d="M206 112c0 2 0 15 1 22h8c1-7 1-20 1-22z" fill="#881337"/>
-                <ellipse cx="191" cy="135" rx="6" ry="2.4" fill="#4c0519"/>
-                <ellipse cx="211" cy="135" rx="6" ry="2.4" fill="#4c0519"/>
-                <path d="M180 74c0-3 8-9 20-9s20 6 20 9v30c0 2-6 5-20 5s-20-3-20-5z" fill="url(#celeb-mom-dress)"/>
-                <path d="M190 74h20c2 0 4 2 4 4l-2 5H188l-2-5c0-2 2-4 4-4z" fill="#fda4af" opacity="0.45"/>
-                <path d="M182 82c-8 10-10 20-10 26" stroke="url(#celeb-mom-dress)" strokeWidth="6.5" strokeLinecap="round" fill="none"/>
-                <circle cx="170" cy="110" r="3.5" fill="url(#celeb-skin)"/>
-                <g className="celeb-arm-wave celeb-arm-wave--mom">
-                  <path d="M218 80c10-14 16-28 12-38" stroke="url(#celeb-mom-dress)" strokeWidth="6.5" strokeLinecap="round" fill="none"/>
-                  <circle cx="228" cy="40" r="3.6" fill="url(#celeb-skin)"/>
-                  <line x1="228" y1="38" x2="238" y2="16" stroke="#a16207" strokeWidth="1.7" strokeLinecap="round"/>
-                  <circle className="celeb-spark-core" cx="240" cy="12" r="4" fill="#f97316"/>
-                  <circle cx="240" cy="12" r="7" fill="#f97316" opacity="0.25"/>
-                </g>
-                <rect x="195" y="64" width="10" height="8" rx="3" fill="url(#celeb-skin)"/>
-                <circle cx="200" cy="56" r="12" fill="url(#celeb-skin)"/>
-                <path d="M187 50c2-11 22-14 28-4-10 0-15 5-17 11z" fill="#431407"/>
-                <circle cx="195" cy="55" r="1.3" fill="#3f2a1e"/>
-                <circle cx="205" cy="55" r="1.3" fill="#3f2a1e"/>
-                <circle cx="195.4" cy="54.5" r="0.4" fill="#fff" opacity="0.75"/>
-                <circle cx="205.4" cy="54.5" r="0.4" fill="#fff" opacity="0.75"/>
-                <path d="M196 62c2.2 2 6 2 8 0" stroke="#a16207" strokeWidth="1.25" strokeLinecap="round" fill="none"/>
-              </g>
-
-              {/* Girl kid */}
-              <g className="celeb-fig celeb-fig--girl">
-                <ellipse className="celeb-foot-shadow" cx="278" cy="137" rx="14" ry="3.5" fill="#9a3412" opacity="0.22"/>
-                <path d="M267 112c0 2 1 15 2 22h7c1-7 1-20 1-22z" fill="#9a3412"/>
-                <path d="M282 112c0 2 0 15 1 22h7c1-7 1-20 1-22z" fill="#9a3412"/>
-                <ellipse cx="271" cy="135" rx="5.5" ry="2.2" fill="#451a03"/>
-                <ellipse cx="286" cy="135" rx="5.5" ry="2.2" fill="#451a03"/>
-                <path d="M264 86c0-3 6-8 14-8s14 5 14 8v24c0 2-4 4-14 4s-14-2-14-4z" fill="url(#celeb-girl-dress)"/>
-                <circle cx="278" cy="84" r="4.5" fill="#fdba74" opacity="0.5"/>
-                <path d="M266 90c-7 7-9 16-9 22" stroke="url(#celeb-girl-dress)" strokeWidth="6" strokeLinecap="round" fill="none"/>
-                <circle cx="255" cy="114" r="3.2" fill="url(#celeb-skin)"/>
-                <g className="celeb-arm-wave">
-                  <path d="M290 88c12-10 18-22 16-34" stroke="url(#celeb-girl-dress)" strokeWidth="6" strokeLinecap="round" fill="none"/>
-                  <circle cx="304" cy="52" r="3.5" fill="url(#celeb-skin)"/>
-                  <line x1="304" y1="50" x2="316" y2="28" stroke="#a16207" strokeWidth="1.6" strokeLinecap="round"/>
-                  <circle className="celeb-spark-core" cx="318" cy="24" r="3.6" fill="#fb7185"/>
-                  <circle cx="318" cy="24" r="6.5" fill="#fb7185" opacity="0.28"/>
-                </g>
-                <rect x="273" y="76" width="10" height="7" rx="2.5" fill="url(#celeb-skin)"/>
-                <circle cx="278" cy="70" r="10" fill="url(#celeb-skin)"/>
-                <path d="M267 66c3-10 17-12 21-2-6 0-10 4-11 9z" fill="#7c2d12"/>
-                <circle cx="274" cy="69" r="1.2" fill="#3f2a1e"/>
-                <circle cx="282" cy="69" r="1.2" fill="#3f2a1e"/>
-                <circle cx="274.35" cy="68.55" r="0.35" fill="#fff" opacity="0.75"/>
-                <circle cx="282.35" cy="68.55" r="0.35" fill="#fff" opacity="0.75"/>
-                <path d="M275 75c1.9 1.8 5.2 1.8 6.8 0" stroke="#a16207" strokeWidth="1.15" strokeLinecap="round" fill="none"/>
-              </g>
-
-              {/* Skyshot mortar */}
-              <g className="celeb-mortar">
-                <ellipse className="celeb-foot-shadow" cx="360" cy="136" rx="12" ry="4" fill="#9a3412" opacity="0.28"/>
-                <path d="M352 100h16l2 34c0 2-4 4-10 4s-10-2-10-4z" fill="url(#celeb-mortar-g)"/>
-                <rect x="354" y="102" width="12" height="10" rx="2" fill="#fbbf24" opacity="0.85"/>
-                <rect x="356" y="104" width="8" height="3" rx="1" fill="#fef08a"/>
-                <rect x="356" y="92" width="8" height="10" rx="1.5" fill="#7f1d1d"/>
-                <ellipse cx="360" cy="92" rx="5" ry="2" fill="#450a0a"/>
-                <path className="celeb-fuse" d="M360 92c2-6 6-8 8-6" stroke="#a3a3a3" strokeWidth="1.4" fill="none" strokeLinecap="round"/>
-                <circle className="celeb-fuse-spark" cx="369" cy="85" r="2.4" fill="#fde047"/>
-              </g>
-            </svg>
+            <div className="celeb-cast celeb-cast--flip" aria-hidden="true">
+              <img
+                className="celeb-cast__frame"
+                src={SHINCHAN_FRAMES[frame]}
+                alt=""
+                width="420"
+                height="480"
+                decoding="async"
+                draggable="false"
+              />
+            </div>
 
             <div className="celeb-spark-spray celeb-spark-spray--dad">
               <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
@@ -297,6 +161,70 @@ export default function Hero() {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Rocket blossoms across full hero — empty gaps around copy + cartoon */}
+      <div className="hero-side-skyshots" aria-hidden="true">
+        <span className="side-shot side-shot--left-a">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom"></em>
+        </span>
+        <span className="side-shot side-shot--left-b">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--pink"></em>
+        </span>
+        <span className="side-shot side-shot--left-c">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--orange"></em>
+        </span>
+        <span className="side-shot side-shot--right-a">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--orange"></em>
+        </span>
+        <span className="side-shot side-shot--right-b">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--violet"></em>
+        </span>
+        <span className="side-shot side-shot--right-c">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom"></em>
+        </span>
+        <span className="side-shot side-shot--mid-l">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--pink"></em>
+        </span>
+        <span className="side-shot side-shot--mid-c">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom"></em>
+        </span>
+        <span className="side-shot side-shot--mid-r">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--violet"></em>
+        </span>
+        <span className="side-shot side-shot--top-l">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--orange"></em>
+        </span>
+        <span className="side-shot side-shot--low-l">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom"></em>
+        </span>
+        <span className="side-shot side-shot--low-r">
+          <i className="side-shot__rocket"></i>
+          <b className="side-shot__trail"></b>
+          <em className="side-shot__bloom side-shot__bloom--pink"></em>
+        </span>
       </div>
 
       <div className="hero-sparkles" aria-hidden="true">
