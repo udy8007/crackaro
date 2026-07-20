@@ -1,5 +1,5 @@
 # Crackaro (Sparkle Crackers)
-Full-stack ecommerce:
+Full-stack ecommerce:1
 
 - **client/** — React shop + checkout + admin
 - **server/** — Node/Express API
