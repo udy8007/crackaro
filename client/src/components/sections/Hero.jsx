@@ -118,7 +118,7 @@ export default function Hero() {
         </div>
       </div>
 
-      {/* Cast lives on the full hero so it can fill the center empty band */}
+      {/* Sky fireworks only — cast sits in the hero grid center column */}
       <div className="hero-celeb" aria-hidden="true">
         <div className="celeb-sky">
           <span className="celeb-rocket celeb-rocket--1"><i></i><b></b></span>
@@ -131,35 +131,6 @@ export default function Hero() {
           <span className="celeb-ember"></span><span className="celeb-ember"></span>
           <span className="celeb-ember"></span><span className="celeb-ember"></span>
           <span className="celeb-ember"></span><span className="celeb-ember"></span>
-        </div>
-
-        <div className="celeb-stage">
-          <div className="celeb-cast celeb-cast--flip">
-            <img
-              className="celeb-cast__frame"
-              src={SHINCHAN_FRAMES[frame]}
-              alt=""
-              width="420"
-              height="480"
-              decoding="async"
-              draggable="false"
-            />
-          </div>
-
-          <div className="celeb-spark-spray celeb-spark-spray--dad">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-          <div className="celeb-spark-spray celeb-spark-spray--mom">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-          <div className="celeb-spark-spray celeb-spark-spray--girl">
-            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-          </div>
-          <div className="celeb-launch">
-            <span className="celeb-launch__rocket"></span>
-            <span className="celeb-launch__trail"></span>
-            <span className="celeb-launch__pop"></span>
-          </div>
         </div>
       </div>
 
@@ -331,27 +302,35 @@ export default function Hero() {
               </a>
             </div>
           </div>
+        </div>
 
-          <div className="hero-fill">
-            <div className="hero-meta">
-              <div>
-                <strong>500+</strong>
-                <span>Varieties</span>
-              </div>
-              <div>
-                <strong>25+</strong>
-                <span>Years</span>
-              </div>
-              <div>
-                <strong>50k+</strong>
-                <span>Customers</span>
-              </div>
+        <div className="hero-cast" aria-hidden="true">
+          <div className="celeb-stage celeb-stage--inline">
+            <div className="celeb-cast celeb-cast--flip">
+              <img
+                className="celeb-cast__frame"
+                src={SHINCHAN_FRAMES[frame]}
+                alt=""
+                width="420"
+                height="480"
+                decoding="async"
+                draggable="false"
+              />
             </div>
-            <ul className="hero-points">
-              <li><i className="fa-solid fa-check" aria-hidden="true"></i> Genuine Sivakasi quality</li>
-              <li><i className="fa-solid fa-check" aria-hidden="true"></i> Competitive wholesale rates</li>
-              <li><i className="fa-solid fa-check" aria-hidden="true"></i> Secure packaging &amp; shipping</li>
-            </ul>
+            <div className="celeb-spark-spray celeb-spark-spray--dad">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div className="celeb-spark-spray celeb-spark-spray--mom">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div className="celeb-spark-spray celeb-spark-spray--girl">
+              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+            </div>
+            <div className="celeb-launch">
+              <span className="celeb-launch__rocket"></span>
+              <span className="celeb-launch__trail"></span>
+              <span className="celeb-launch__pop"></span>
+            </div>
           </div>
         </div>
 
@@ -412,23 +391,6 @@ export default function Hero() {
               </div>
             </div>
           </div>
-        </div>
-
-        {/* Full-width closer — kills the empty strip under both columns */}
-        <div className="hero-ground">
-          <div className="hero-ground__assurances">
-            <span><i className="fa-solid fa-shield-halved" aria-hidden="true"></i> PESO certified</span>
-            <span><i className="fa-solid fa-truck-fast" aria-hidden="true"></i> Pan-India delivery</span>
-            <span><i className="fa-solid fa-tags" aria-hidden="true"></i> Factory-direct rates</span>
-            <span><i className="fa-solid fa-headset" aria-hidden="true"></i> Order support</span>
-          </div>
-          <nav className="hero-occasions" aria-label="Shop by occasion">
-            <span className="hero-occasions__label">Celebrate with</span>
-            <a href="#packs">Diwali</a>
-            <a href="#products">Weddings</a>
-            <a href="#packs">New Year</a>
-            <a href="#products">Gift Boxes</a>
-          </nav>
         </div>
       </div>
 
