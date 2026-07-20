@@ -278,6 +278,53 @@ export default function Hero() {
           <span className="hero-deco-shadow"></span>
         </figure>
 
+        {/* Dim scatter — gift packs + celebration icons near cast bottom */}
+        <div className="hero-scatter" aria-hidden="true">
+          <figure className="hero-scatter__item hero-scatter__item--gift-a">
+            <div className="c-cracker c-cracker--gift c-cracker--xs">
+              <span className="c-cracker__bow"></span>
+              <span className="c-cracker__gift-box"></span>
+            </div>
+          </figure>
+          <figure className="hero-scatter__item hero-scatter__item--gift-b">
+            <div className="c-cracker c-cracker--gift c-cracker--xs">
+              <span className="c-cracker__bow"></span>
+              <span className="c-cracker__gift-box"></span>
+            </div>
+          </figure>
+          <figure className="hero-scatter__item hero-scatter__item--gift-c">
+            <div className="c-cracker c-cracker--gift c-cracker--xs">
+              <span className="c-cracker__bow"></span>
+              <span className="c-cracker__gift-box"></span>
+            </div>
+          </figure>
+          <figure className="hero-scatter__item hero-scatter__item--celeb-a">
+            <div className="c-cracker c-cracker--chakri c-cracker--xs">
+              <span className="c-cracker__wheel"></span>
+              <span className="c-cracker__hub"></span>
+            </div>
+          </figure>
+          <figure className="hero-scatter__item hero-scatter__item--celeb-b">
+            <div className="c-cracker c-cracker--chakri c-cracker--xs">
+              <span className="c-cracker__wheel"></span>
+              <span className="c-cracker__hub"></span>
+            </div>
+          </figure>
+          <figure className="hero-scatter__item hero-scatter__item--celeb-c">
+            <div className="c-cracker c-cracker--chakri c-cracker--xs">
+              <span className="c-cracker__wheel"></span>
+              <span className="c-cracker__hub"></span>
+            </div>
+          </figure>
+          <span className="hero-scatter__burst hero-scatter__burst--1"></span>
+          <span className="hero-scatter__burst hero-scatter__burst--2"></span>
+          <span className="hero-scatter__burst hero-scatter__burst--3"></span>
+          <span className="hero-scatter__dot hero-scatter__dot--1"></span>
+          <span className="hero-scatter__dot hero-scatter__dot--2"></span>
+          <span className="hero-scatter__dot hero-scatter__dot--3"></span>
+          <span className="hero-scatter__dot hero-scatter__dot--4"></span>
+        </div>
+
         <div className="hero-spark-trails">
           <span className="hero-trail hero-trail--1"></span>
           <span className="hero-trail hero-trail--2"></span>
