@@ -116,49 +116,49 @@ export default function Hero() {
           <span></span><span></span><span></span><span></span><span></span><span></span>
           <span></span><span></span><span></span><span></span><span></span><span></span>
         </div>
+      </div>
 
-        {/* Shinchan-style anime GIF celebration — blends with cream sky */}
-        <div className="hero-celeb">
-          <div className="celeb-sky">
-            <span className="celeb-rocket celeb-rocket--1"><i></i><b></b></span>
-            <span className="celeb-rocket celeb-rocket--2"><i></i><b></b></span>
-            <span className="celeb-rocket celeb-rocket--3"><i></i><b></b></span>
-            <span className="celeb-bloom celeb-bloom--1"></span>
-            <span className="celeb-bloom celeb-bloom--2"></span>
-            <span className="celeb-bloom celeb-bloom--3"></span>
-            <span className="celeb-ember"></span><span className="celeb-ember"></span>
-            <span className="celeb-ember"></span><span className="celeb-ember"></span>
-            <span className="celeb-ember"></span><span className="celeb-ember"></span>
-            <span className="celeb-ember"></span><span className="celeb-ember"></span>
+      {/* Cast lives on the full hero so it can fill the center empty band */}
+      <div className="hero-celeb" aria-hidden="true">
+        <div className="celeb-sky">
+          <span className="celeb-rocket celeb-rocket--1"><i></i><b></b></span>
+          <span className="celeb-rocket celeb-rocket--2"><i></i><b></b></span>
+          <span className="celeb-rocket celeb-rocket--3"><i></i><b></b></span>
+          <span className="celeb-bloom celeb-bloom--1"></span>
+          <span className="celeb-bloom celeb-bloom--2"></span>
+          <span className="celeb-bloom celeb-bloom--3"></span>
+          <span className="celeb-ember"></span><span className="celeb-ember"></span>
+          <span className="celeb-ember"></span><span className="celeb-ember"></span>
+          <span className="celeb-ember"></span><span className="celeb-ember"></span>
+          <span className="celeb-ember"></span><span className="celeb-ember"></span>
+        </div>
+
+        <div className="celeb-stage">
+          <div className="celeb-cast celeb-cast--flip">
+            <img
+              className="celeb-cast__frame"
+              src={SHINCHAN_FRAMES[frame]}
+              alt=""
+              width="420"
+              height="480"
+              decoding="async"
+              draggable="false"
+            />
           </div>
 
-          <div className="celeb-stage">
-            <div className="celeb-cast celeb-cast--flip" aria-hidden="true">
-              <img
-                className="celeb-cast__frame"
-                src={SHINCHAN_FRAMES[frame]}
-                alt=""
-                width="420"
-                height="480"
-                decoding="async"
-                draggable="false"
-              />
-            </div>
-
-            <div className="celeb-spark-spray celeb-spark-spray--dad">
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-            </div>
-            <div className="celeb-spark-spray celeb-spark-spray--mom">
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-            </div>
-            <div className="celeb-spark-spray celeb-spark-spray--girl">
-              <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
-            </div>
-            <div className="celeb-launch">
-              <span className="celeb-launch__rocket"></span>
-              <span className="celeb-launch__trail"></span>
-              <span className="celeb-launch__pop"></span>
-            </div>
+          <div className="celeb-spark-spray celeb-spark-spray--dad">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div className="celeb-spark-spray celeb-spark-spray--mom">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div className="celeb-spark-spray celeb-spark-spray--girl">
+            <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+          </div>
+          <div className="celeb-launch">
+            <span className="celeb-launch__rocket"></span>
+            <span className="celeb-launch__trail"></span>
+            <span className="celeb-launch__pop"></span>
           </div>
         </div>
       </div>
@@ -316,33 +316,47 @@ export default function Hero() {
 
       <div className="container hero-inner">
         <div className="hero-content">
-          <p className="eyebrow"><i className="fa-solid fa-star"></i> Sivakasi Festival Collection</p>
-          <h1>Make every celebration <span className="text-gradient">truly memorable</span></h1>
-          <p className="hero-text">
-            Discover carefully selected crackers, elegant gift boxes, and celebration packs — authentic Sivakasi quality for homes, weddings, and special events.
-          </p>
-          <div className="hero-cta">
-            <a href="#products" className="btn btn-primary btn-lg">
-              <i className="fa-solid fa-bag-shopping"></i> Browse Products
-            </a>
+          <div className="hero-copy">
+            <p className="eyebrow"><i className="fa-solid fa-star"></i> Sivakasi Festival Collection</p>
+            <h1>Make every celebration <span className="text-gradient">truly memorable</span></h1>
+            <p className="hero-text">
+              Discover carefully selected crackers, elegant gift boxes, and celebration packs — authentic Sivakasi quality for homes, weddings, and special events.
+            </p>
+            <div className="hero-cta">
+              <a href="#products" className="btn btn-primary btn-lg">
+                <i className="fa-solid fa-bag-shopping"></i> Browse Products
+              </a>
+              <a href="#packs" className="btn btn-outline btn-lg">
+                <i className="fa-solid fa-boxes-stacked"></i> Festival Packs
+              </a>
+            </div>
           </div>
-          <div className="hero-meta">
-            <div>
-              <strong>500+</strong>
-              <span>Product varieties</span>
+
+          <div className="hero-fill">
+            <div className="hero-meta">
+              <div>
+                <strong>500+</strong>
+                <span>Varieties</span>
+              </div>
+              <div>
+                <strong>25+</strong>
+                <span>Years</span>
+              </div>
+              <div>
+                <strong>50k+</strong>
+                <span>Customers</span>
+              </div>
             </div>
-            <div>
-              <strong>25+</strong>
-              <span>Years experience</span>
-            </div>
-            <div>
-              <strong>50k+</strong>
-              <span>Happy customers</span>
-            </div>
+            <ul className="hero-points">
+              <li><i className="fa-solid fa-check" aria-hidden="true"></i> Genuine Sivakasi quality</li>
+              <li><i className="fa-solid fa-check" aria-hidden="true"></i> Competitive wholesale rates</li>
+              <li><i className="fa-solid fa-check" aria-hidden="true"></i> Secure packaging &amp; shipping</li>
+            </ul>
           </div>
         </div>
-        <div className="hero-visual" aria-hidden="true">
-          <div className="hero-visual-orbit">
+
+        <div className="hero-visual">
+          <div className="hero-visual-orbit" aria-hidden="true">
             <figure className="hero-orbit-item hero-orbit-item--skyshot">
               <div className="skyshot-launch skyshot-launch--orbit">
                 <span className="skyshot-launch__trail"></span>
@@ -397,13 +411,38 @@ export default function Hero() {
                 <span>Gift Collections</span>
               </div>
             </div>
-            <ul className="hero-points">
-              <li><i className="fa-solid fa-check"></i> Genuine quality products</li>
-              <li><i className="fa-solid fa-check"></i> Competitive wholesale rates</li>
-              <li><i className="fa-solid fa-check"></i> Secure packaging &amp; shipping</li>
-            </ul>
           </div>
         </div>
+
+        {/* Full-width closer — kills the empty strip under both columns */}
+        <div className="hero-ground">
+          <div className="hero-ground__assurances">
+            <span><i className="fa-solid fa-shield-halved" aria-hidden="true"></i> PESO certified</span>
+            <span><i className="fa-solid fa-truck-fast" aria-hidden="true"></i> Pan-India delivery</span>
+            <span><i className="fa-solid fa-tags" aria-hidden="true"></i> Factory-direct rates</span>
+            <span><i className="fa-solid fa-headset" aria-hidden="true"></i> Order support</span>
+          </div>
+          <nav className="hero-occasions" aria-label="Shop by occasion">
+            <span className="hero-occasions__label">Celebrate with</span>
+            <a href="#packs">Diwali</a>
+            <a href="#products">Weddings</a>
+            <a href="#packs">New Year</a>
+            <a href="#products">Gift Boxes</a>
+          </nav>
+        </div>
+      </div>
+
+      <div className="hero-bridge" aria-hidden="true">
+        <svg
+          className="hero-bridge__wave"
+          viewBox="0 0 1440 40"
+          preserveAspectRatio="none"
+        >
+          <path
+            className="hero-bridge__wave-fill"
+            d="M0,18 C240,40 480,0 720,16 C960,32 1200,4 1440,20 L1440,40 L0,40 Z"
+          />
+        </svg>
       </div>
     </section>
     </>
