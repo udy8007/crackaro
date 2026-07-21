@@ -7,7 +7,7 @@ export default function Topbar() {
             <i className="fa-solid fa-phone"></i> +91 98765 43210
           </span>
           <span>
-            <i className="fa-solid fa-envelope"></i> orders@sparklecrackers.com
+            <i className="fa-solid fa-envelope"></i> orders@crackaro.com
           </span>
         </div>
         <div className="topbar-right">

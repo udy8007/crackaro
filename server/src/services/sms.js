@@ -51,7 +51,7 @@ async function sendTwilio(phone10, otp) {
   const body = new URLSearchParams({
     To: `+91${phone10}`,
     From: from,
-    Body: `Your Sparkle Crackers admin login OTP is ${otp}. Valid for 5 minutes. Do not share.`,
+    Body: `Your Crackaro admin login OTP is ${otp}. Valid for 5 minutes. Do not share.`,
   });
 
   const response = await fetch(
@@ -97,7 +97,7 @@ async function sendFast2Sms(phone10, otp) {
     params.set("variables_values", String(otp));
     params.set(
       "message",
-      `Your Sparkle Crackers admin login OTP is ${otp}. Valid for 5 minutes.`
+      `Your Crackaro admin login OTP is ${otp}. Valid for 5 minutes.`
     );
   }
 

@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180" fill="none">
+  <defs>
+    <linearGradient id="wheelGrad" x1="0" y1="0" x2="180" y2="180">
+      <stop offset="0%" stop-color="#fde047"/>
+      <stop offset="35%" stop-color="#f97316"/>
+      <stop offset="70%" stop-color="#be123c"/>
+      <stop offset="100%" stop-color="#7f1d1d"/>
+    </linearGradient>
+    <radialGradient id="wheelCenter" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a"/>
+      <stop offset="100%" stop-color="#eab308"/>
+    </radialGradient>
+  </defs>
+  <!-- Ground shadow -->
+  <ellipse cx="90" cy="168" rx="58" ry="10" fill="#7f1d1d" opacity="0.12"/>
+  <!-- Outer ring -->
+  <circle cx="90" cy="88" r="72" fill="url(#wheelGrad)" opacity="0.95"/>
+  <circle cx="90" cy="88" r="68" fill="none" stroke="#fff" stroke-width="2" opacity="0.4"/>
+  <!-- Spokes -->
+  <g stroke="#fff" stroke-width="3" opacity="0.55">
+    <line x1="90" y1="20" x2="90" y2="156"/>
+    <line x1="20" y1="88" x2="160" y2="88"/>
+    <line x1="40" y1="38" x2="140" y2="138"/>
+    <line x1="140" y1="38" x2="40" y2="138"/>
+    <line x1="90" y1="20" x2="90" y2="156" transform="rotate(22.5 90 88)"/>
+    <line x1="90" y1="20" x2="90" y2="156" transform="rotate(45 90 88)"/>
+    <line x1="90" y1="20" x2="90" y2="156" transform="rotate(67.5 90 88)"/>
+  </g>
+  <!-- Inner disc -->
+  <circle cx="90" cy="88" r="28" fill="url(#wheelCenter)"/>
+  <circle cx="90" cy="88" r="22" fill="#fff7ed" stroke="#c2410c" stroke-width="2"/>
+  <text x="90" y="93" text-anchor="middle" font-family="Inter, sans-serif" font-size="10" font-weight="800" fill="#be123c">CHAKRI</text>
+  <!-- Spark trail -->
+  <path d="M158 88 Q172 72 176 52" stroke="#fde047" stroke-width="2.5" stroke-linecap="round" opacity="0.7"/>
+  <circle cx="176" cy="50" r="4" fill="#fde047" opacity="0.85"/>
+  <circle cx="170" cy="58" r="2" fill="#fbbf24" opacity="0.6"/>
+  <circle cx="164" cy="66" r="1.5" fill="#fb923c" opacity="0.5"/>
+</svg>

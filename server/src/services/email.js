@@ -91,18 +91,18 @@ export async function sendOtpEmail(toEmail, otp) {
   const mailer = await getTransporter();
   const recipient = normalizeEmail(toEmail || getAdminEmail());
   const from = usingEthereal
-    ? `"Sparkle Crackers" <${etherealUser}>`
+    ? `"Crackaro" <${etherealUser}>`
     : process.env.SMTP_FROM ||
-      `"Sparkle Crackers" <${process.env.SMTP_USER}>`;
+      `"Crackaro" <${process.env.SMTP_USER}>`;
 
   const info = await mailer.sendMail({
     from,
     to: recipient,
-    subject: "Your Sparkle Crackers admin OTP",
+    subject: "Your Crackaro admin OTP",
     text: `Your admin login OTP is ${otp}. It is valid for 5 minutes. Do not share this code with anyone.`,
     html: `
       <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px; border:1px solid #fde68a; border-radius:12px;">
-        <h2 style="color:#be123c;margin:0 0 12px;">Sparkle Crackers Admin</h2>
+        <h2 style="color:#be123c;margin:0 0 12px;">Crackaro Admin</h2>
         <p style="color:#374151;margin:0 0 8px;">Your one-time password for admin login:</p>
         <p style="font-size:32px;letter-spacing:8px;font-weight:700;color:#111827;margin:20px 0;">${otp}</p>
         <p style="color:#6b7280;font-size:13px;margin:0;">Valid for 5 minutes. If you did not request this, ignore this email.</p>

@@ -236,7 +236,7 @@ export default function AdminPage() {
                 <i className="fa-solid fa-burst"></i>
               </span>
               <div>
-                <p className="eyebrow">Sparkle Crackers</p>
+                <p className="eyebrow">Crackaro</p>
                 <h1>Admin sign in</h1>
               </div>
             </div>
@@ -354,6 +354,7 @@ export default function AdminPage() {
               <Link to="/" className="admin-back">
                 <i className="fa-solid fa-store"></i> Shop
               </Link>
+              <p className="eyebrow">Crackaro</p>
               <h1>Operations desk</h1>
               <p>
                 Signed in as <strong>{displayEmail}</strong>

@@ -141,8 +141,8 @@ async function decrementStock(lines) {
 }
 
 router.get("/payment-config", (_req, res) => {
-  const upiId = process.env.UPI_ID || "sparklecrackers@upi";
-  const payeeName = process.env.UPI_NAME || "Sparkle Crackers";
+  const upiId = process.env.UPI_ID || "crackaro@upi";
+  const payeeName = process.env.UPI_NAME || "Crackaro";
   res.json({
     upiId,
     payeeName,

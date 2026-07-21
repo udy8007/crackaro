@@ -37,13 +37,13 @@ export default function Header({ activeSection }) {
       }}
     >
       <div className="container header-inner">
-        <Link to="/" className="logo" onClick={closeMenu}>
-          <span className="logo-icon">
+        <Link to="/" className="logo" onClick={closeMenu} aria-label="Crackaro home">
+          <span className="logo-icon" aria-hidden="true">
             <i className="fa-solid fa-burst"></i>
           </span>
           <span className="logo-text">
-            <strong>Sparkle</strong>
-            <small>Crackers</small>
+            <strong>Crackaro</strong>
+            <small>Fireworks &amp; Crackers</small>
           </span>
         </Link>
 

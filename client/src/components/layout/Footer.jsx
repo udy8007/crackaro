@@ -5,13 +5,13 @@ export default function Footer() {
     <footer className="footer">
       <div className="container footer-grid">
         <div className="footer-brand">
-          <a href="#home" className="logo">
-            <span className="logo-icon">
+          <a href="#home" className="logo" aria-label="Crackaro home">
+            <span className="logo-icon" aria-hidden="true">
               <i className="fa-solid fa-burst"></i>
             </span>
             <span className="logo-text">
-              <strong>Sparkle</strong>
-              <small>Crackers</small>
+              <strong>Crackaro</strong>
+              <small>Fireworks &amp; Crackers</small>
             </span>
           </a>
           <p>
@@ -79,7 +79,7 @@ export default function Footer() {
       </div>
       <div className="footer-bottom">
         <div className="container footer-bottom-inner">
-          <p>&copy; 2026 Sparkle Crackers. All rights reserved.</p>
+          <p>&copy; 2026 Crackaro. All rights reserved.</p>
           <p>Celebrate responsibly. Follow local laws and safety guidelines.</p>
         </div>
       </div>

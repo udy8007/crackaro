@@ -1,4 +1,4 @@
-# Crackaro (Sparkle Crackers)
+# Crackaro
 Full-stack ecommerce:1
 
 - **client/** — React shop + checkout + admin
@@ -54,7 +54,7 @@ SUPABASE_ANON_KEY=...
 SUPABASE_SERVICE_ROLE_KEY=...
 ADMIN_SECRET=your-strong-secret
 UPI_ID=yourshop@upi
-UPI_NAME=Sparkle Crackers
+UPI_NAME=Crackaro
 ```
 
 ```bash

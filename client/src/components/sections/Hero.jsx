@@ -334,6 +334,61 @@ export default function Hero() {
 
       <div className="container hero-inner">
         <div className="hero-content">
+          {/* Mobile-only — gift packs + shaded glow behind the copy */}
+          <div className="hero-mobile-bg" aria-hidden="true">
+            <span className="hero-mobile-bg__shade hero-mobile-bg__shade--rose"></span>
+            <span className="hero-mobile-bg__shade hero-mobile-bg__shade--gold"></span>
+            <span className="hero-mobile-bg__shade hero-mobile-bg__shade--amber"></span>
+            <span className="hero-mobile-bg__shade hero-mobile-bg__shade--coral"></span>
+            <figure className="hero-mobile-bg__gift hero-mobile-bg__gift--1">
+              <div className="c-cracker c-cracker--gift">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <figure className="hero-mobile-bg__gift hero-mobile-bg__gift--2">
+              <div className="c-cracker c-cracker--gift">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <figure className="hero-mobile-bg__gift hero-mobile-bg__gift--3">
+              <div className="c-cracker c-cracker--gift">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <figure className="hero-mobile-bg__gift hero-mobile-bg__gift--4">
+              <div className="c-cracker c-cracker--gift">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <img
+              className="hero-mobile-bg__pack hero-mobile-bg__pack--1"
+              src="/images/gift-pack.svg"
+              alt=""
+              width="120"
+              height="135"
+              decoding="async"
+              draggable="false"
+            />
+            <img
+              className="hero-mobile-bg__pack hero-mobile-bg__pack--2"
+              src="/images/gift-pack.svg"
+              alt=""
+              width="100"
+              height="112"
+              decoding="async"
+              draggable="false"
+            />
+            <span className="hero-mobile-bg__sparkle"></span>
+            <span className="hero-mobile-bg__sparkle"></span>
+            <span className="hero-mobile-bg__sparkle"></span>
+            <span className="hero-mobile-bg__sparkle"></span>
+            <span className="hero-mobile-bg__sparkle"></span>
+            <span className="hero-mobile-bg__sparkle"></span>
+          </div>
           <div className="hero-copy">
             <p className="eyebrow"><i className="fa-solid fa-star"></i> Sivakasi Festival Collection</p>
             <h1>Make every celebration <span className="text-gradient">truly memorable</span></h1>
@@ -352,6 +407,35 @@ export default function Hero() {
         </div>
 
         <div className="hero-cast" aria-hidden="true">
+          {/* Mobile: small gift packs behind/beside the cast */}
+          <div className="hero-cast-gifts">
+            <figure className="hero-cast-gifts__item hero-cast-gifts__item--l1">
+              <div className="c-cracker c-cracker--gift c-cracker--xs">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <figure className="hero-cast-gifts__item hero-cast-gifts__item--l2">
+              <div className="c-cracker c-cracker--gift c-cracker--xs">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <figure className="hero-cast-gifts__item hero-cast-gifts__item--r1">
+              <div className="c-cracker c-cracker--gift c-cracker--xs">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <figure className="hero-cast-gifts__item hero-cast-gifts__item--r2">
+              <div className="c-cracker c-cracker--gift c-cracker--xs">
+                <span className="c-cracker__bow"></span>
+                <span className="c-cracker__gift-box"></span>
+              </div>
+            </figure>
+            <span className="hero-cast-gifts__shade hero-cast-gifts__shade--left"></span>
+            <span className="hero-cast-gifts__shade hero-cast-gifts__shade--right"></span>
+          </div>
           <div className="celeb-stage celeb-stage--inline">
             <div className="celeb-cast celeb-cast--flip">
               <img

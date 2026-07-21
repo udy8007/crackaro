@@ -317,7 +317,8 @@ p {
 }
 
 .logo-text strong {
-  font-size: 16px;
+  font-size: 18px;
+  letter-spacing: 0.01em;
   background: linear-gradient(90deg, #be123c, #c2410c, #a16207);
   -webkit-background-clip: text;
   background-clip: text;
@@ -326,8 +327,9 @@ p {
 
 .logo-text small {
   color: var(--muted);
-  font-size: 11px;
+  font-size: 10px;
   font-weight: 500;
+  letter-spacing: 0.02em;
 }
 
 .nav {
@@ -381,6 +383,13 @@ p {
     radial-gradient(circle at 72% 82%, rgba(194, 65, 12, 0.18), transparent 30%),
     radial-gradient(circle at 24% 88%, rgba(192, 38, 211, 0.12), transparent 24%),
     linear-gradient(160deg, #fff7ed 0%, #fff1f2 35%, #fef3c7 70%, #ffe4e6 100%);
+}
+
+/* Mobile-only layers — hidden on desktop */
+.hero-mobile-bg,
+.hero-mobile-festive,
+.hero-cast-gifts {
+  display: none;
 }
 
 /* Sky band — lamps / bursts only (cast is grounded on full hero) */
@@ -3529,24 +3538,24 @@ p {
 
   .hero-inner {
     grid-template-columns: 1fr;
-    margin-top: 12px;
-    gap: 10px;
+    margin-top: 8px;
+    gap: 6px;
     align-items: stretch;
-    padding-bottom: 16px;
+    padding-bottom: 12px;
     min-height: 0;
   }
 
   .hero-cast {
     order: -1;
-    min-height: 230px;
-    height: 230px;
-    max-height: 230px;
+    min-height: 220px;
+    height: 220px;
+    max-height: 220px;
     overflow: visible;
   }
 
   .celeb-stage,
   .celeb-stage--inline {
-    min-height: 230px;
+    min-height: 220px;
     max-width: 380px;
     height: 100%;
     overflow: visible;
@@ -3780,16 +3789,16 @@ p {
   .hero-celeb {
     top: 0;
     bottom: auto;
-    height: 200px;
+    height: 190px;
     overflow: visible;
   }
 
   /* Full cast strip — heads must stay below the sticky header */
   .hero-cast {
-    min-height: 200px;
-    height: 200px;
-    max-height: 200px;
-    margin: 4px 0 0;
+    min-height: 190px;
+    height: 190px;
+    max-height: 190px;
+    margin: 0;
     width: 100%;
     overflow: visible;
     align-self: stretch;
@@ -3799,19 +3808,22 @@ p {
   .celeb-stage--inline {
     width: 100%;
     max-width: 300px;
-    min-height: 200px;
+    min-height: 190px;
     height: 100%;
     overflow: visible;
   }
 
   .celeb-cast--flip {
-    width: 90%;
-    height: 94%;
+    width: 92%;
+    height: 100%;
+    top: 0;
+    bottom: 0;
   }
 
   .celeb-cast--flip .celeb-cast__frame {
-    transform: scale(0.9);
+    transform: scale(0.96);
     transform-origin: center bottom;
+    object-position: center bottom;
   }
 
   .hero-scatter__item--gift-a { left: 4%; bottom: 2%; opacity: 0.32; }
@@ -3837,13 +3849,92 @@ p {
   }
 
   .hero-inner {
-    margin-top: 4px;
-    gap: 8px;
+    margin-top: 0;
+    gap: 2px;
     padding-bottom: 4px;
   }
 
   .hero .container.hero-inner {
     width: min(100% - 16px, 1200px);
+  }
+
+  /* Small gift packs beside / behind the cartoon */
+  .hero-cast {
+    position: relative;
+  }
+
+  .hero-cast-gifts {
+    display: block;
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: visible;
+  }
+
+  .hero-cast .celeb-stage {
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-cast-gifts__item {
+    position: absolute;
+    margin: 0;
+    opacity: 0.4;
+    filter: drop-shadow(0 4px 8px rgba(127, 29, 29, 0.14));
+    animation: mobile-gift-float 7s ease-in-out infinite;
+  }
+
+  .hero-cast-gifts__item--l1 {
+    left: 2%;
+    top: 28%;
+    transform: rotate(-14deg) scale(0.85);
+    animation-delay: 0.2s;
+  }
+
+  .hero-cast-gifts__item--l2 {
+    left: 6%;
+    bottom: 8%;
+    opacity: 0.34;
+    transform: rotate(10deg) scale(0.72);
+    animation-delay: 1.2s;
+  }
+
+  .hero-cast-gifts__item--r1 {
+    right: 2%;
+    top: 22%;
+    transform: rotate(12deg) scale(0.8);
+    animation-delay: 0.7s;
+  }
+
+  .hero-cast-gifts__item--r2 {
+    right: 5%;
+    bottom: 10%;
+    opacity: 0.32;
+    transform: rotate(-8deg) scale(0.68);
+    animation-delay: 1.8s;
+  }
+
+  .hero-cast-gifts__shade {
+    position: absolute;
+    width: 110px;
+    height: 110px;
+    border-radius: 50%;
+    filter: blur(20px);
+    opacity: 0.7;
+    pointer-events: none;
+  }
+
+  .hero-cast-gifts__shade--left {
+    left: -8%;
+    top: 36%;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.45) 0%, transparent 70%);
+  }
+
+  .hero-cast-gifts__shade--right {
+    right: -8%;
+    top: 30%;
+    background: radial-gradient(circle, rgba(251, 113, 133, 0.4) 0%, transparent 70%);
   }
 
   .side-shot--left-a  { left: 3%;  top: 58px;  bottom: auto; }
@@ -3913,10 +4004,17 @@ p {
   .hero-content {
     position: relative;
     z-index: 3;
-    padding: 4px 2px 0;
+    padding: 2px 2px 0;
     text-align: center;
     justify-content: flex-start;
     background: transparent;
+    overflow: visible;
+    min-height: 0;
+  }
+
+  .hero-copy {
+    position: relative;
+    z-index: 2;
   }
 
   .hero-content .eyebrow {
@@ -3950,7 +4048,7 @@ p {
   .hero-cta {
     justify-content: center;
     max-width: 380px;
-    margin: 10px auto 0;
+    margin: 8px auto 0;
     gap: 8px;
   }
 
@@ -3961,7 +4059,7 @@ p {
   }
 
   .hero-visual {
-    margin-top: 10px;
+    margin-top: 14px;
     padding-bottom: 0;
   }
 
@@ -3982,6 +4080,223 @@ p {
   .hero-float--rocket,
   .hero-float--chakri {
     display: none;
+  }
+
+  /* Soft gift packs + shaded atmosphere behind mobile copy */
+  .hero-mobile-bg {
+    display: block;
+    position: absolute;
+    inset: -8px -4px;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+    border-radius: 18px;
+  }
+
+  .hero-mobile-bg__shade {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(22px);
+    animation: mobile-shade-pulse 7s ease-in-out infinite;
+  }
+
+  .hero-mobile-bg__shade--rose {
+    width: 170px;
+    height: 170px;
+    left: -18%;
+    top: 8%;
+    background: radial-gradient(circle, rgba(251, 113, 133, 0.55) 0%, transparent 72%);
+    opacity: 0.85;
+  }
+
+  .hero-mobile-bg__shade--gold {
+    width: 190px;
+    height: 190px;
+    right: -20%;
+    top: 18%;
+    background: radial-gradient(circle, rgba(251, 191, 36, 0.5) 0%, transparent 72%);
+    opacity: 0.9;
+    animation-delay: 1.4s;
+  }
+
+  .hero-mobile-bg__shade--amber {
+    width: 160px;
+    height: 160px;
+    left: 22%;
+    bottom: -6%;
+    background: radial-gradient(circle, rgba(249, 115, 22, 0.4) 0%, transparent 72%);
+    opacity: 0.8;
+    animation-delay: 2.6s;
+  }
+
+  .hero-mobile-bg__shade--coral {
+    width: 140px;
+    height: 140px;
+    right: 12%;
+    bottom: 10%;
+    background: radial-gradient(circle, rgba(190, 18, 60, 0.35) 0%, transparent 72%);
+    opacity: 0.75;
+    animation-delay: 0.8s;
+  }
+
+  @keyframes mobile-shade-pulse {
+    0%, 100% { transform: scale(1); opacity: 0.65; }
+    50% { transform: scale(1.1); opacity: 1; }
+  }
+
+  .hero-mobile-bg__gift {
+    position: absolute;
+    margin: 0;
+    opacity: 0.28;
+    filter: drop-shadow(0 4px 8px rgba(127, 29, 29, 0.12));
+    animation: mobile-gift-float 7.5s ease-in-out infinite;
+  }
+
+  .hero-mobile-bg__gift .c-cracker--gift {
+    width: 42px;
+    height: 48px;
+  }
+
+  .hero-mobile-bg__gift .c-cracker__bow {
+    width: 20px;
+    height: 10px;
+  }
+
+  .hero-mobile-bg__gift .c-cracker__gift-box {
+    width: 36px;
+    height: 32px;
+  }
+
+  .hero-mobile-bg__gift--1 {
+    left: -2%;
+    top: 18%;
+    opacity: 0.3;
+    transform: rotate(-16deg);
+    animation-delay: 0.2s;
+  }
+
+  .hero-mobile-bg__gift--2 {
+    right: -2%;
+    top: 36%;
+    opacity: 0.28;
+    transform: rotate(14deg);
+    animation-delay: 1.1s;
+  }
+
+  .hero-mobile-bg__gift--3 {
+    left: 8%;
+    bottom: 6%;
+    opacity: 0.24;
+    transform: rotate(10deg) scale(0.9);
+    animation-delay: 2s;
+  }
+
+  .hero-mobile-bg__gift--4 {
+    right: 10%;
+    bottom: 2%;
+    opacity: 0.22;
+    transform: rotate(-12deg) scale(0.85);
+    animation-delay: 2.8s;
+  }
+
+  .hero-mobile-bg__pack {
+    position: absolute;
+    width: 64px;
+    height: auto;
+    opacity: 0.22;
+    filter: saturate(1.05) drop-shadow(0 6px 10px rgba(127, 29, 29, 0.12));
+    animation: mobile-gift-float 8s ease-in-out infinite;
+    user-select: none;
+  }
+
+  .hero-mobile-bg__pack--1 {
+    left: 62%;
+    top: 8%;
+    width: 70px;
+    opacity: 0.24;
+    transform: rotate(8deg);
+    animation-delay: 0.6s;
+  }
+
+  .hero-mobile-bg__pack--2 {
+    left: 30%;
+    bottom: 4%;
+    width: 58px;
+    opacity: 0.2;
+    transform: rotate(-8deg);
+    animation-delay: 1.8s;
+  }
+
+  @keyframes mobile-gift-float {
+    0%, 100% { translate: 0 0; }
+    50% { translate: 0 -8px; }
+  }
+
+  .hero-mobile-bg__sparkle {
+    position: absolute;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #fde047;
+    box-shadow: 0 0 10px rgba(251, 191, 36, 0.85);
+    opacity: 0;
+    animation: mobile-sparkle-twinkle 3.2s ease-in-out infinite;
+  }
+
+  .hero-mobile-bg__sparkle:nth-child(11) {
+    left: 18%;
+    top: 22%;
+    animation-delay: 0.3s;
+  }
+
+  .hero-mobile-bg__sparkle:nth-child(12) {
+    left: 42%;
+    top: 48%;
+    width: 5px;
+    height: 5px;
+    background: #fb7185;
+    box-shadow: 0 0 8px rgba(251, 113, 133, 0.75);
+    animation-delay: 1s;
+  }
+
+  .hero-mobile-bg__sparkle:nth-child(13) {
+    right: 20%;
+    top: 16%;
+    animation-delay: 1.6s;
+  }
+
+  .hero-mobile-bg__sparkle:nth-child(14) {
+    right: 30%;
+    bottom: 22%;
+    width: 5px;
+    height: 5px;
+    background: #f97316;
+    box-shadow: 0 0 8px rgba(249, 115, 22, 0.7);
+    animation-delay: 2.2s;
+  }
+
+  .hero-mobile-bg__sparkle:nth-child(15) {
+    left: 55%;
+    bottom: 28%;
+    width: 4px;
+    height: 4px;
+    animation-delay: 0.7s;
+  }
+
+  .hero-mobile-bg__sparkle:nth-child(16) {
+    right: 10%;
+    top: 58%;
+    width: 4px;
+    height: 4px;
+    background: #f472b6;
+    box-shadow: 0 0 8px rgba(244, 114, 182, 0.7);
+    animation-delay: 2.8s;
+  }
+
+  @keyframes mobile-sparkle-twinkle {
+    0%, 100% { opacity: 0; transform: scale(0.4); }
+    40% { opacity: 0.95; transform: scale(1); }
+    70% { opacity: 0.4; transform: scale(0.8); }
   }
 
   /* Extra mobile festive layer — blossoms flanking the cartoon */

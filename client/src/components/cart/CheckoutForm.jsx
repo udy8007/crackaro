@@ -28,8 +28,8 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
       .then(setConfig)
       .catch(() =>
         setConfig({
-          upiId: "sparklecrackers@upi",
-          payeeName: "Sparkle Crackers",
+          upiId: "crackaro@upi",
+          payeeName: "Crackaro",
           note: "Pay via UPI and enter UTR below.",
           utrHint: "8–22 alphanumeric characters.",
           utrPattern: "^[A-Za-z0-9]{8,22}$",
@@ -83,7 +83,7 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
       pn: config.payeeName,
       am: String(grandTotal),
       cu: "INR",
-      tn: "Sparkle Crackers Order",
+      tn: "Crackaro Order",
     });
     return `upi://pay?${params.toString()}`;
   }, [config, canPay, grandTotal]);
@@ -294,7 +294,7 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
               <strong>UPI ID:</strong> {config?.upiId || "—"}
             </p>
             <p>
-              <strong>Payee:</strong> {config?.payeeName || "Sparkle Crackers"}
+              <strong>Payee:</strong> {config?.payeeName || "Crackaro"}
             </p>
             <p>
               <strong>Amount:</strong>{" "}

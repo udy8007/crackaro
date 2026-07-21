@@ -4,10 +4,10 @@ export default function About() {
 <section className="section section-alt" id="about">
       <div className="container about-grid">
         <div className="about-content">
-          <p className="eyebrow">About Sparkle Crackers</p>
+          <p className="eyebrow">About Crackaro</p>
           <h2>Quality fireworks rooted in Sivakasi tradition</h2>
           <p>
-            For over two decades, Sparkle Crackers has supplied families, retailers, and event planners with authentic, certified crackers.
+            For over two decades, Crackaro has supplied families, retailers, and event planners with authentic, certified crackers.
             We focus on consistent quality, transparent pricing, and responsible celebration.
           </p>
           <div className="about-list">
