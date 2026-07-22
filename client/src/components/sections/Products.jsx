@@ -8,6 +8,7 @@ export default function Products({ activeFilter, onFilterChange }) {
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [preview, setPreview] = useState(null);
 
   useEffect(() => {
     let alive = true;
@@ -30,6 +31,19 @@ export default function Products({ activeFilter, onFilterChange }) {
     };
   }, []);
 
+  useEffect(() => {
+    if (!preview) return undefined;
+    const onKey = (event) => {
+      if (event.key === "Escape") setPreview(null);
+    };
+    document.body.style.overflow = "hidden";
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = "";
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [preview]);
+
   const visible = useMemo(
     () =>
       products.filter(
@@ -37,6 +51,15 @@ export default function Products({ activeFilter, onFilterChange }) {
       ),
     [products, activeFilter]
   );
+
+  const filterCounts = useMemo(() => {
+    const counts = { all: products.length };
+    for (const product of products) {
+      const key = product.category;
+      counts[key] = (counts[key] || 0) + 1;
+    }
+    return counts;
+  }, [products]);
 
   const getLine = (product) =>
     items.find((row) => row.cartId === `product-${product.id}`);
@@ -68,6 +91,13 @@ export default function Products({ activeFilter, onFilterChange }) {
     updateQty(cartId, Math.min(nextQty, max));
   };
 
+  const previewLine = preview ? getLine(preview) : null;
+  const previewQty = previewLine?.qty || 0;
+  const previewOos = preview ? preview.stock <= 0 : false;
+  const previewAtMax = preview
+    ? previewQty >= (Number(preview.stock) || 0)
+    : false;
+
   return (
     <section className="section products-shop" id="products">
       <div className="products-shop__glow" aria-hidden="true" />
@@ -92,6 +122,7 @@ export default function Products({ activeFilter, onFilterChange }) {
           >
             {PRODUCT_FILTERS.map((filter) => {
               const active = activeFilter === filter.id;
+              const count = filterCounts[filter.id] ?? 0;
               return (
                 <button
                   key={filter.id}
@@ -108,7 +139,11 @@ export default function Products({ activeFilter, onFilterChange }) {
                     });
                   }}
                 >
-                  {filter.label}
+                  <span className="products-filter__icon" aria-hidden="true">
+                    <i className={`fa-solid ${filter.icon}`} />
+                  </span>
+                  <span className="products-filter__label">{filter.label}</span>
+                  <span className="products-filter__count">{count}</span>
                 </button>
               );
             })}
@@ -137,6 +172,12 @@ export default function Products({ activeFilter, onFilterChange }) {
                 className={`product-card${oos ? " product-card--oos" : ""}`}
                 data-category={product.category}
               >
+                <button
+                  type="button"
+                  className="product-card__preview-hit"
+                  aria-label={`Preview ${product.name}`}
+                  onClick={() => setPreview(product)}
+                />
                 <div
                   className={`product-media${
                     product.imageUrl ? " product-media--photo" : ""
@@ -170,7 +211,11 @@ export default function Products({ activeFilter, onFilterChange }) {
                   <span className={`tag ${product.tagClass}`}>{product.tag}</span>
                   <h3>{product.name}</h3>
                   <p>{product.description}</p>
-                  <div className="product-footer">
+                  <div
+                    className="product-footer"
+                    onClick={(event) => event.stopPropagation()}
+                    onKeyDown={(event) => event.stopPropagation()}
+                  >
                     <span className="price">
                       {product.price} <small>{product.unit}</small>
                     </span>
@@ -225,6 +270,107 @@ export default function Products({ activeFilter, onFilterChange }) {
           })}
         </div>
       </div>
+
+      {preview ? (
+        <div
+          className="product-preview"
+          role="dialog"
+          aria-modal="true"
+          aria-label={preview.name}
+        >
+          <button
+            type="button"
+            className="product-preview__backdrop"
+            aria-label="Close preview"
+            onClick={() => setPreview(null)}
+          />
+          <div className="product-preview__sheet">
+            <div className="product-preview__grab" aria-hidden="true" />
+            <button
+              type="button"
+              className="product-preview__close"
+              aria-label="Close"
+              onClick={() => setPreview(null)}
+            >
+              <i className="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+
+            <div
+              className={`product-preview__media${
+                preview.imageUrl ? " product-preview__media--photo" : ""
+              } ${preview.mediaClass || ""}`}
+            >
+              {preview.imageUrl ? (
+                <img src={preview.imageUrl} alt={preview.name} />
+              ) : (
+                <i className={`fa-solid ${preview.icon}`}></i>
+              )}
+            </div>
+
+            <div className="product-preview__body">
+              <span className={`tag ${preview.tagClass}`}>{preview.tag}</span>
+              <h3>{preview.name}</h3>
+              <p className="product-preview__desc">
+                {preview.description || "No description available."}
+              </p>
+              <p className="product-preview__price">
+                {preview.price} <small>{preview.unit}</small>
+              </p>
+
+              {previewOos ? (
+                <button
+                  type="button"
+                  className="product-cta product-cta--disabled"
+                  disabled
+                >
+                  Out of stock
+                </button>
+              ) : previewQty > 0 ? (
+                <div className="product-preview__actions">
+                  <div
+                    className="product-qty"
+                    role="group"
+                    aria-label="Quantity"
+                  >
+                    <button
+                      type="button"
+                      aria-label="Decrease quantity"
+                      onClick={() => handleQtyChange(preview, previewQty - 1)}
+                    >
+                      −
+                    </button>
+                    <span aria-live="polite">{previewQty}</span>
+                    <button
+                      type="button"
+                      aria-label="Increase quantity"
+                      disabled={previewAtMax}
+                      onClick={() => handleQtyChange(preview, previewQty + 1)}
+                    >
+                      +
+                    </button>
+                  </div>
+                  <button
+                    type="button"
+                    className="btn btn-outline product-preview__done"
+                    onClick={() => setPreview(null)}
+                  >
+                    Done
+                  </button>
+                </div>
+              ) : (
+                <button
+                  type="button"
+                  className="product-cta"
+                  onClick={() => handleAdd(preview)}
+                >
+                  <i className="fa-solid fa-cart-plus" aria-hidden="true"></i>
+                  <span>Add to cart</span>
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      ) : null}
     </section>
   );
 }

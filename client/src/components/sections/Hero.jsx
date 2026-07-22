@@ -397,8 +397,9 @@ export default function Hero() {
               for homes, weddings, and special events.
             </p>
             <div className="hero-cta">
-              <a href="#products" className="btn btn-primary btn-lg">
-                <i className="fa-solid fa-bag-shopping"></i> Browse Products
+              <a href="#products" className="btn btn-primary btn-lg hero-cta__browse">
+                <i className="fa-solid fa-bag-shopping"></i>
+                <span>Browse Products</span>
               </a>
               <a href="#contact" className="btn btn-outline btn-lg">
                 <i className="fa-solid fa-headset"></i> Get a Quote

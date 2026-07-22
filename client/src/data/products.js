@@ -1,44 +1,14 @@
 export const PRODUCT_FILTERS = [
-  {
-    "id": "all",
-    "label": "All"
-  },
-  {
-    "id": "sparklers",
-    "label": "Sparklers"
-  },
-  {
-    "id": "ground",
-    "label": "Ground"
-  },
-  {
-    "id": "fancy",
-    "label": "Sky Shots"
-  },
-  {
-    "id": "rockets",
-    "label": "Rockets"
-  },
-  {
-    "id": "fountain",
-    "label": "Fountains"
-  },
-  {
-    "id": "bombs",
-    "label": "Bombs"
-  },
-  {
-    "id": "lakshmi",
-    "label": "Sound"
-  },
-  {
-    "id": "kids",
-    "label": "Kids"
-  },
-  {
-    "id": "wala",
-    "label": "Gift Wala"
-  }
+  { id: "all", label: "All", icon: "fa-border-all" },
+  { id: "sparklers", label: "Sparklers", icon: "fa-wand-magic-sparkles" },
+  { id: "ground", label: "Ground", icon: "fa-circle-dot" },
+  { id: "fancy", label: "Sky Shots", icon: "fa-cloud-moon" },
+  { id: "rockets", label: "Rockets", icon: "fa-rocket" },
+  { id: "fountain", label: "Fountains", icon: "fa-seedling" },
+  { id: "bombs", label: "Bombs", icon: "fa-bomb" },
+  { id: "lakshmi", label: "Sound", icon: "fa-bolt" },
+  { id: "kids", label: "Kids", icon: "fa-children" },
+  { id: "wala", label: "Gift Wala", icon: "fa-gift" },
 ];
 
 export const PRODUCTS = [
