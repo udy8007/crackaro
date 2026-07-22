@@ -37,7 +37,7 @@ export const PRODUCT_FILTERS = [
   },
   {
     "id": "wala",
-    "label": "Wala"
+    "label": "Gift Wala"
   }
 ];
 

@@ -37,13 +37,7 @@ export default function Footer() {
           <h4>Quick Links</h4>
           <ul>
             <li>
-              <a href="#categories">Categories</a>
-            </li>
-            <li>
               <a href="#products">Products</a>
-            </li>
-            <li>
-              <a href="#packs">Festival Packs</a>
             </li>
             <li>
               <a href="#safety">Safety</a>

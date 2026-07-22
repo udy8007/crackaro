@@ -393,14 +393,15 @@ export default function Hero() {
             <p className="eyebrow"><i className="fa-solid fa-star"></i> Sivakasi Festival Collection</p>
             <h1>Make every celebration <span className="text-gradient">truly memorable</span></h1>
             <p className="hero-text">
-              Discover carefully selected crackers, elegant gift boxes, and celebration packs — authentic Sivakasi quality for homes, weddings, and special events.
+              Discover carefully selected crackers and authentic Sivakasi quality
+              for homes, weddings, and special events.
             </p>
             <div className="hero-cta">
               <a href="#products" className="btn btn-primary btn-lg">
                 <i className="fa-solid fa-bag-shopping"></i> Browse Products
               </a>
-              <a href="#packs" className="btn btn-outline btn-lg">
-                <i className="fa-solid fa-boxes-stacked"></i> Festival Packs
+              <a href="#contact" className="btn btn-outline btn-lg">
+                <i className="fa-solid fa-headset"></i> Get a Quote
               </a>
             </div>
           </div>

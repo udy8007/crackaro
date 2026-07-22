@@ -106,7 +106,7 @@ export default function CartPage() {
                 <section className="cart-empty-panel">
                   <i className="fa-solid fa-basket-shopping"></i>
                   <h2>Your cart is empty</h2>
-                  <p>Add crackers or festival packs to continue.</p>
+                  <p>Add crackers to continue.</p>
                   <Link to="/#products" className="btn btn-primary">
                     Browse products
                   </Link>

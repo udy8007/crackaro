@@ -4,9 +4,7 @@ import { useCart } from "../../context/CartContext";
 
 const NAV_LINKS = [
   { href: "/#home", label: "Home", id: "home" },
-  { href: "/#categories", label: "Categories", id: "categories" },
   { href: "/#products", label: "Products", id: "products" },
-  { href: "/#packs", label: "Festival Packs", id: "packs" },
   { href: "/#about", label: "About", id: "about" },
   { href: "/#safety", label: "Safety", id: "safety" },
   { href: "/#contact", label: "Contact", id: "contact" },

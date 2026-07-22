@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { fetchCatalog } from "../../api/products";
 import { useCart } from "../../context/CartContext";
 import { PRODUCT_FILTERS } from "../../data/products";
@@ -30,8 +30,12 @@ export default function Products({ activeFilter, onFilterChange }) {
     };
   }, []);
 
-  const visible = products.filter(
-    (product) => activeFilter === "all" || product.category === activeFilter
+  const visible = useMemo(
+    () =>
+      products.filter(
+        (product) => activeFilter === "all" || product.category === activeFilter
+      ),
+    [products, activeFilter]
   );
 
   const getLine = (product) =>
@@ -65,31 +69,56 @@ export default function Products({ activeFilter, onFilterChange }) {
   };
 
   return (
-    <section className="section section-alt" id="products">
+    <section className="section products-shop" id="products">
+      <div className="products-shop__glow" aria-hidden="true" />
       <div className="container">
-        <div className="section-head">
+        <header className="products-shop__head">
           <p className="eyebrow">Featured Products</p>
-          <h2>Popular crackers this season</h2>
-          <p className="section-desc">
-            Handpicked bestsellers with clear pricing and quality grades.
+          <h2>
+            Shop crackers
+            <span className="products-shop__title-long"> by category</span>
+          </h2>
+          <p className="section-desc products-shop__desc">
+            Clear pricing and live stock — choose a category below.
           </p>
-        </div>
+        </header>
 
-        <div className="filter-bar" id="filterBar">
-          {PRODUCT_FILTERS.map((filter) => (
-            <button
-              key={filter.id}
-              type="button"
-              className={`filter-btn${activeFilter === filter.id ? " active" : ""}`}
-              onClick={() => onFilterChange(filter.id)}
-            >
-              {filter.label}
-            </button>
-          ))}
+        <div className="products-shop__toolbar">
+          <div
+            className="products-filters"
+            id="filterBar"
+            role="tablist"
+            aria-label="Product categories"
+          >
+            {PRODUCT_FILTERS.map((filter) => {
+              const active = activeFilter === filter.id;
+              return (
+                <button
+                  key={filter.id}
+                  type="button"
+                  role="tab"
+                  aria-selected={active}
+                  className={`products-filter${active ? " is-active" : ""}`}
+                  onClick={(event) => {
+                    onFilterChange(filter.id);
+                    event.currentTarget.scrollIntoView({
+                      behavior: "smooth",
+                      inline: "center",
+                      block: "nearest",
+                    });
+                  }}
+                >
+                  {filter.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
 
         {loading ? <p className="catalog-status">Loading products…</p> : null}
-        {error ? <p className="catalog-status catalog-status--warn">{error}</p> : null}
+        {error ? (
+          <p className="catalog-status catalog-status--warn">{error}</p>
+        ) : null}
 
         {!loading && visible.length === 0 ? (
           <p className="catalog-status">No products in this category.</p>
@@ -109,8 +138,13 @@ export default function Products({ activeFilter, onFilterChange }) {
                 data-category={product.category}
               >
                 <div
-                  className={`product-media${product.imageUrl ? " product-media--photo" : ""} ${product.mediaClass}`}
+                  className={`product-media${
+                    product.imageUrl ? " product-media--photo" : ""
+                  } ${product.mediaClass}`}
                 >
+                  {oos ? (
+                    <span className="product-card__badge">Sold out</span>
+                  ) : null}
                   {product.imageUrl ? (
                     <img
                       src={product.imageUrl}
@@ -120,7 +154,6 @@ export default function Products({ activeFilter, onFilterChange }) {
                         const img = e.currentTarget;
                         if (img.dataset.fallbackTried) return;
                         img.dataset.fallbackTried = "1";
-                        // Prefer png cutouts; fall back to jpg if a deploy is mid-sync
                         const src = String(product.imageUrl);
                         if (src.includes(".png")) {
                           img.src = src.replace(/\.png(\?|$)/, ".jpg$1");
@@ -150,7 +183,11 @@ export default function Products({ activeFilter, onFilterChange }) {
                         Out of stock
                       </button>
                     ) : qty > 0 ? (
-                      <div className="product-qty" role="group" aria-label="Quantity">
+                      <div
+                        className="product-qty"
+                        role="group"
+                        aria-label="Quantity"
+                      >
                         <button
                           type="button"
                           aria-label="Decrease quantity"
@@ -174,7 +211,10 @@ export default function Products({ activeFilter, onFilterChange }) {
                         className="product-cta"
                         onClick={() => handleAdd(product)}
                       >
-                        <i className="fa-solid fa-cart-plus" aria-hidden="true"></i>
+                        <i
+                          className="fa-solid fa-cart-plus"
+                          aria-hidden="true"
+                        ></i>
                         <span>Add to cart</span>
                       </button>
                     )}

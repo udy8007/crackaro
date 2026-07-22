@@ -7,9 +7,7 @@ import Footer from "../components/layout/Footer";
 import BackToTop from "../components/layout/BackToTop";
 import Hero from "../components/sections/Hero";
 import Trust from "../components/sections/Trust";
-import Categories from "../components/sections/Categories";
 import Products from "../components/sections/Products";
-import Packs from "../components/sections/Packs";
 import About from "../components/sections/About";
 import Safety from "../components/sections/Safety";
 import Testimonials from "../components/sections/Testimonials";
@@ -18,9 +16,7 @@ import useActiveSection from "../hooks/useActiveSection";
 
 const SECTION_IDS = [
   "home",
-  "categories",
   "products",
-  "packs",
   "about",
   "safety",
   "contact",
@@ -31,10 +27,6 @@ export default function HomePage() {
   const activeSection = useActiveSection(sectionIds);
   const [activeFilter, setActiveFilter] = useState("all");
 
-  const handleSelectCategory = (filter) => {
-    setActiveFilter(filter === "gift" ? "all" : filter);
-  };
-
   return (
     <>
       <FestivalBanner />
@@ -43,12 +35,10 @@ export default function HomePage() {
       <main>
         <Hero />
         <Trust />
-        <Categories onSelectCategory={handleSelectCategory} />
         <Products
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
         />
-        <Packs />
         <About />
         <Safety />
         <Testimonials />
