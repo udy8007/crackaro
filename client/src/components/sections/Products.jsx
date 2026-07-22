@@ -48,6 +48,7 @@ export default function Products({ activeFilter, onFilterChange }) {
       unit: product.unit,
       icon: product.icon,
       mediaClass: product.mediaClass,
+      imageUrl: product.imageUrl || null,
       maxStock: product.stock,
       qty: 1,
     });
@@ -90,6 +91,10 @@ export default function Products({ activeFilter, onFilterChange }) {
         {loading ? <p className="catalog-status">Loading products…</p> : null}
         {error ? <p className="catalog-status catalog-status--warn">{error}</p> : null}
 
+        {!loading && visible.length === 0 ? (
+          <p className="catalog-status">No products in this category.</p>
+        ) : null}
+
         <div className="product-grid" id="productGrid">
           {visible.map((product) => {
             const oos = product.stock <= 0;
@@ -103,8 +108,30 @@ export default function Products({ activeFilter, onFilterChange }) {
                 className={`product-card${oos ? " product-card--oos" : ""}`}
                 data-category={product.category}
               >
-                <div className={`product-media ${product.mediaClass}`}>
-                  <i className={`fa-solid ${product.icon}`}></i>
+                <div
+                  className={`product-media${product.imageUrl ? " product-media--photo" : ""} ${product.mediaClass}`}
+                >
+                  {product.imageUrl ? (
+                    <img
+                      src={product.imageUrl}
+                      alt={product.name}
+                      loading="lazy"
+                      onError={(e) => {
+                        const img = e.currentTarget;
+                        if (img.dataset.fallbackTried) return;
+                        img.dataset.fallbackTried = "1";
+                        // Prefer png cutouts; fall back to jpg if a deploy is mid-sync
+                        const src = String(product.imageUrl);
+                        if (src.includes(".png")) {
+                          img.src = src.replace(/\.png(\?|$)/, ".jpg$1");
+                        } else {
+                          img.style.display = "none";
+                        }
+                      }}
+                    />
+                  ) : (
+                    <i className={`fa-solid ${product.icon}`}></i>
+                  )}
                 </div>
                 <div className="product-body">
                   <span className={`tag ${product.tagClass}`}>{product.tag}</span>

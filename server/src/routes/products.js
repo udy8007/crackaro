@@ -21,6 +21,7 @@ function mapProduct(row) {
     active: Boolean(row.active),
     icon: row.icon,
     mediaClass: row.media_class,
+    imageUrl: row.image_url || null,
     tag: row.tag,
     tagClass: row.tag_class,
   };

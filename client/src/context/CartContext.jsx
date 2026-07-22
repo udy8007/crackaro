@@ -74,6 +74,7 @@ export function CartProvider({ children }) {
           unit: item.unit || "",
           icon: item.icon || "fa-bag-shopping",
           mediaClass: item.mediaClass || "c-orange",
+          imageUrl: item.imageUrl || null,
           maxStock,
           qty: Math.min(addQty, maxStock),
         },

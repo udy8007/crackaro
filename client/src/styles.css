@@ -2945,6 +2945,26 @@ p {
   font-size: 34px;
 }
 
+.product-media--photo {
+  aspect-ratio: 4 / 3;
+  height: auto;
+  min-height: 168px;
+  padding: 10px 12px;
+  background:
+    radial-gradient(circle at 50% 40%, #ffffff 0%, transparent 55%),
+    linear-gradient(180deg, #fffaf5 0%, #fff1e6 55%, #ffe0d2 100%);
+  overflow: hidden;
+}
+
+.product-media--photo img {
+  width: 100%;
+  height: 100%;
+  /* Transparent PNG cutouts — full product, card gradient shows through */
+  object-fit: contain;
+  object-position: center center;
+  display: block;
+}
+
 .product-body {
   padding: 16px;
   display: flex;
@@ -4721,6 +4741,19 @@ p {
   place-items: center;
   color: #fff;
   font-size: 16px;
+  overflow: hidden;
+}
+
+.cart-item__media--photo {
+  background: #fff7ed;
+  padding: 0;
+}
+
+.cart-item__media--photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .cart-item__info h3 {

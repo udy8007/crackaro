@@ -140,9 +140,13 @@ export default function CartPage() {
                         <li key={item.cartId} className="cart-table__row">
                           <div className="cart-table__product">
                             <div
-                              className={`cart-item__media ${item.mediaClass}`}
+                              className={`cart-item__media${item.imageUrl ? " cart-item__media--photo" : ""} ${item.mediaClass}`}
                             >
-                              <i className={`fa-solid ${item.icon}`}></i>
+                              {item.imageUrl ? (
+                                <img src={item.imageUrl} alt={item.name} />
+                              ) : (
+                                <i className={`fa-solid ${item.icon}`}></i>
+                              )}
                             </div>
                             <div>
                               <h3>{item.name}</h3>
