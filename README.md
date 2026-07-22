@@ -65,10 +65,19 @@ npm run dev
 - Admin: http://localhost:5173/admin  
 - API: http://localhost:5000  
 
+## Production
+
+- Site: https://crackaro.vercel.app/  
+- API base: https://crackaro.vercel.app/api  
+- Health: https://crackaro.vercel.app/api/health  
+
+Set the same `server/.env` keys in the Vercel project **Environment Variables** (Production). The frontend uses relative `/api` on this origin, so `VITE_API_URL` can stay empty.
+
 ## API
 
 | Method | Path | Description |
 |--------|------|-------------|
+| GET | `/api/health` | API + DB config check |
 | GET | `/api/orders/payment-config` | UPI ID for QR |
 | POST | `/api/orders` | Place order (details + UTR + items) |
 | GET | `/api/orders/track/:orderNumber` | Public order status |
