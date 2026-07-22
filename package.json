@@ -2,6 +2,7 @@
   "name": "crackaro",
   "version": "1.0.0",
   "private": true,
+  "type": "module",
   "description": "Sparkle Crackers — React frontend + Node API + Supabase (Vercel Storage)",
   "scripts": {
     "dev": "concurrently -n server,client -c blue,magenta \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
