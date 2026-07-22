@@ -1,6 +1,8 @@
 import { supabase } from "../db/supabase.js";
 import {
   DEFAULT_COMMISSION_RATE,
+  DEFAULT_DELIVERY_FEE,
+  DEFAULT_FREE_DELIVERY_ABOVE,
   DEFAULT_MIN_ORDER,
   DEFAULT_SUPPLIER_MIN_ORDER,
   normalizeSettings,
@@ -30,6 +32,8 @@ export async function ensureSettings() {
     commission_rate: DEFAULT_COMMISSION_RATE,
     min_order_amount: DEFAULT_MIN_ORDER,
     supplier_min_order: DEFAULT_SUPPLIER_MIN_ORDER,
+    delivery_fee: DEFAULT_DELIVERY_FEE,
+    free_delivery_above: DEFAULT_FREE_DELIVERY_ABOVE,
     updated_at: new Date().toISOString(),
   };
 

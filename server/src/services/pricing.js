@@ -1,6 +1,8 @@
 export const DEFAULT_COMMISSION_RATE = 0.2;
 export const DEFAULT_MIN_ORDER = 3000;
 export const DEFAULT_SUPPLIER_MIN_ORDER = 2500;
+export const DEFAULT_DELIVERY_FEE = 250;
+export const DEFAULT_FREE_DELIVERY_ABOVE = 6000;
 
 export function toMoney(value) {
   const n = Number(value);
@@ -59,10 +61,18 @@ export function normalizeSettings(row) {
   const supplierMinOrder = Number(
     row?.supplier_min_order ?? DEFAULT_SUPPLIER_MIN_ORDER
   );
+  const deliveryFee = Number(row?.delivery_fee ?? DEFAULT_DELIVERY_FEE);
+  const freeDeliveryAbove = Number(
+    row?.free_delivery_above ?? DEFAULT_FREE_DELIVERY_ABOVE
+  );
   return {
     commissionRate,
     minOrderAmount,
     supplierMinOrder,
+    deliveryFee: Number.isFinite(deliveryFee) ? deliveryFee : DEFAULT_DELIVERY_FEE,
+    freeDeliveryAbove: Number.isFinite(freeDeliveryAbove)
+      ? freeDeliveryAbove
+      : DEFAULT_FREE_DELIVERY_ABOVE,
     /** What customers are actually held to */
     effectiveMinOrderAmount: effectiveCustomerMinOrder({
       minOrderAmount,

@@ -7277,10 +7277,27 @@ a.admin-preview-link:hover {
   background: linear-gradient(180deg, #fffaf5 0%, #ffffff 100%);
 }
 
+.admin-pricing-card__title {
+  margin: 1.1rem 0 0.65rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #9a3412;
+}
+
+.admin-pricing-card__title:first-child {
+  margin-top: 0;
+}
+
 .admin-pricing-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 1rem;
+}
+
+.admin-pricing-grid--2 {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .admin-pricing-grid label {
@@ -7344,6 +7361,21 @@ a.admin-preview-link:hover {
   gap: 0.5rem;
   align-items: center;
   padding: 0.7rem 0.85rem;
+}
+
+.admin-catalog-table--prices .admin-catalog-table__head,
+.admin-catalog-table--prices .admin-catalog-table__row {
+  grid-template-columns: 2fr 0.85fr 0.85fr 0.7fr 0.7fr 1.05fr;
+}
+
+.admin-catalog-field__label {
+  display: none;
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9a3412;
+  margin-bottom: 0.2rem;
 }
 
 .admin-catalog-table__head {
@@ -7427,7 +7459,8 @@ a.admin-preview-link:hover {
 }
 
 @media (max-width: 900px) {
-  .admin-pricing-grid {
+  .admin-pricing-grid,
+  .admin-pricing-grid--2 {
     grid-template-columns: 1fr;
   }
 
@@ -7435,9 +7468,14 @@ a.admin-preview-link:hover {
     display: none;
   }
 
-  .admin-catalog-table__row {
+  .admin-catalog-table__row,
+  .admin-catalog-table--prices .admin-catalog-table__row {
     grid-template-columns: 1fr 1fr;
     gap: 0.55rem;
+  }
+
+  .admin-catalog-field__label {
+    display: block;
   }
 
   .admin-catalog-table__name,

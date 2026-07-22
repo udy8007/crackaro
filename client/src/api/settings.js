@@ -13,6 +13,10 @@ export async function fetchPublicSettings() {
     const response = await fetch(`${API_BASE}/settings`);
     return parseJson(response);
   } catch {
-    return { minOrderAmount: 3000 };
+    return {
+      minOrderAmount: 3000,
+      deliveryFee: 250,
+      freeDeliveryAbove: 6000,
+    };
   }
 }

@@ -1,7 +1,7 @@
 import { Router } from "express";
 import { supabase } from "../db/supabase.js";
 import { adminAuth } from "../middleware/adminAuth.js";
-import { quoteShipping } from "../services/shipping.js";
+import { quoteShippingWithSettings } from "../services/shipping.js";
 import {
   DEFAULT_MIN_ORDER,
   effectiveCustomerMinOrder,
@@ -279,7 +279,7 @@ router.post("/", async (req, res) => {
       });
     }
 
-    const shipping = quoteShipping({
+    const shipping = await quoteShippingWithSettings({
       pincode: pincode.trim(),
       subtotal,
       state,

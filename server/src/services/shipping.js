@@ -1,3 +1,10 @@
+import {
+  DEFAULT_DELIVERY_FEE,
+  DEFAULT_FREE_DELIVERY_ABOVE,
+  normalizeSettings,
+} from "./pricing.js";
+import { ensureSettings } from "./shopSettings.js";
+
 function parseBlockedPins() {
   return String(process.env.SHIP_BLOCKED_PINS || "")
     .split(",")
@@ -12,7 +19,13 @@ function parseAllowedStates() {
     .filter(Boolean);
 }
 
-export function quoteShipping({ pincode, subtotal = 0, state = "" }) {
+export function quoteShipping({
+  pincode,
+  subtotal = 0,
+  state = "",
+  deliveryFee,
+  freeDeliveryAbove,
+} = {}) {
   const pin = String(pincode || "").trim();
   if (!/^\d{6}$/.test(pin)) {
     return {
@@ -45,8 +58,14 @@ export function quoteShipping({ pincode, subtotal = 0, state = "" }) {
     }
   }
 
-  const freeAbove = Number(process.env.SHIP_FREE_ABOVE) || 3000;
-  const flatFee = Number(process.env.SHIP_FLAT_FEE) || 99;
+  const freeAbove =
+    Number(freeDeliveryAbove) ||
+    Number(process.env.SHIP_FREE_ABOVE) ||
+    DEFAULT_FREE_DELIVERY_ABOVE;
+  const flatFee =
+    Number(deliveryFee) ||
+    Number(process.env.SHIP_FLAT_FEE) ||
+    DEFAULT_DELIVERY_FEE;
   const amount = Number(subtotal) || 0;
   const fee = amount >= freeAbove ? 0 : flatFee;
 
@@ -59,6 +78,25 @@ export function quoteShipping({ pincode, subtotal = 0, state = "" }) {
     message:
       fee === 0
         ? `Free delivery (orders ₹${freeAbove.toLocaleString("en-IN")}+).`
-        : `Flat shipping ₹${flatFee}. Free above ₹${freeAbove.toLocaleString("en-IN")}.`,
+        : `Delivery ₹${flatFee.toLocaleString("en-IN")}. Free above ₹${freeAbove.toLocaleString("en-IN")}.`,
   };
+}
+
+/** Load delivery rules from shop_settings, then quote. */
+export async function quoteShippingWithSettings(args = {}) {
+  let deliveryFee = DEFAULT_DELIVERY_FEE;
+  let freeDeliveryAbove = DEFAULT_FREE_DELIVERY_ABOVE;
+  try {
+    const row = await ensureSettings();
+    const settings = normalizeSettings(row);
+    deliveryFee = settings.deliveryFee;
+    freeDeliveryAbove = settings.freeDeliveryAbove;
+  } catch (err) {
+    console.warn("[shipping] settings fallback", err);
+  }
+  return quoteShipping({
+    ...args,
+    deliveryFee,
+    freeDeliveryAbove,
+  });
 }

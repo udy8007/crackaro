@@ -22,6 +22,7 @@ const sqlFiles = [
   "admin.sql",
   "catalog.sql",
   "commission.sql",
+  "delivery.sql",
 ].map((name) => path.resolve(__dirname, "../sql", name));
 
 const cleanUrl = connectionString

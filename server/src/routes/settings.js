@@ -1,7 +1,11 @@
 import { Router } from "express";
 import { supabase } from "../db/supabase.js";
 import { adminAuth } from "../middleware/adminAuth.js";
-import { sellFromCost } from "../services/pricing.js";
+import {
+  DEFAULT_DELIVERY_FEE,
+  DEFAULT_FREE_DELIVERY_ABOVE,
+  sellFromCost,
+} from "../services/pricing.js";
 import {
   ensureSettings,
   normalizeSettings,
@@ -15,13 +19,16 @@ router.get("/", async (_req, res) => {
     if (!supabase) {
       return res.json({
         minOrderAmount: 3000,
+        deliveryFee: DEFAULT_DELIVERY_FEE,
+        freeDeliveryAbove: DEFAULT_FREE_DELIVERY_ABOVE,
       });
     }
     const row = await ensureSettings();
     const settings = normalizeSettings(row);
     return res.json({
-      // Always the effective floor (covers SRK min + commission)
       minOrderAmount: settings.effectiveMinOrderAmount,
+      deliveryFee: settings.deliveryFee,
+      freeDeliveryAbove: settings.freeDeliveryAbove,
     });
   } catch (error) {
     console.error("[settings]", error);
@@ -81,9 +88,30 @@ router.patch("/", adminAuth, async (req, res) => {
       patch.supplier_min_order = min;
     }
 
+    if (req.body?.deliveryFee !== undefined) {
+      const fee = Number(req.body.deliveryFee);
+      if (!Number.isFinite(fee) || fee < 0) {
+        return res.status(400).json({
+          message: "deliveryFee must be a non-negative number.",
+        });
+      }
+      patch.delivery_fee = fee;
+    }
+
+    if (req.body?.freeDeliveryAbove !== undefined) {
+      const above = Number(req.body.freeDeliveryAbove);
+      if (!Number.isFinite(above) || above < 0) {
+        return res.status(400).json({
+          message: "freeDeliveryAbove must be a non-negative number.",
+        });
+      }
+      patch.free_delivery_above = above;
+    }
+
     if (Object.keys(patch).length === 1) {
       return res.status(400).json({
-        message: "Provide commissionRate, minOrderAmount, and/or supplierMinOrder.",
+        message:
+          "Provide commissionRate, minOrderAmount, supplierMinOrder, deliveryFee, and/or freeDeliveryAbove.",
       });
     }
 

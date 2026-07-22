@@ -98,11 +98,15 @@ export default function AdminPage() {
     commissionRate: 0.2,
     minOrderAmount: 3000,
     supplierMinOrder: 2500,
+    deliveryFee: 250,
+    freeDeliveryAbove: 6000,
   });
   const [settingsForm, setSettingsForm] = useState({
     commissionPercent: "20",
     minOrderAmount: "3000",
     supplierMinOrder: "2500",
+    deliveryFee: "250",
+    freeDeliveryAbove: "6000",
   });
   const [tab, setTab] = useState("orders");
   const [statuses, setStatuses] = useState(Object.keys(STATUS_LABELS));
@@ -115,6 +119,7 @@ export default function AdminPage() {
   const [busyId, setBusyId] = useState("");
   const [query, setQuery] = useState("");
   const [catalogQuery, setCatalogQuery] = useState("");
+  const [catalogType, setCatalogType] = useState("all");
   const [draftPrices, setDraftPrices] = useState({});
 
   const handleAuthFailure = (message) => {
@@ -164,6 +169,8 @@ export default function AdminPage() {
       ),
       minOrderAmount: String(next.minOrderAmount ?? 3000),
       supplierMinOrder: String(next.supplierMinOrder ?? 2500),
+      deliveryFee: String(next.deliveryFee ?? 250),
+      freeDeliveryAbove: String(next.freeDeliveryAbove ?? 6000),
     });
   };
 
@@ -201,6 +208,7 @@ export default function AdminPage() {
         drafts[`${item.type}-${item.id}`] = {
           costPrice: String(item.costPrice ?? ""),
           sellPrice: String(item.sellPrice ?? item.priceValue ?? ""),
+          stock: String(item.stock ?? 0),
         };
       }
       setDraftPrices(drafts);
@@ -247,10 +255,13 @@ export default function AdminPage() {
 
   const catalogRows = useMemo(() => {
     const q = catalogQuery.trim().toLowerCase();
-    const rows = [
+    let rows = [
       ...catalogProducts.map((p) => ({ ...p, type: "product" })),
       ...catalogPacks.map((p) => ({ ...p, type: "pack" })),
     ];
+    if (catalogType !== "all") {
+      rows = rows.filter((row) => row.type === catalogType);
+    }
     if (!q) return rows;
     return rows.filter((row) =>
       [row.name, row.id, row.category, row.type]
@@ -259,7 +270,15 @@ export default function AdminPage() {
         .toLowerCase()
         .includes(q)
     );
-  }, [catalogProducts, catalogPacks, catalogQuery]);
+  }, [catalogProducts, catalogPacks, catalogQuery, catalogType]);
+
+  const settingsPayload = () => ({
+    commissionRate: Number(settingsForm.commissionPercent) / 100,
+    minOrderAmount: Number(settingsForm.minOrderAmount),
+    supplierMinOrder: Number(settingsForm.supplierMinOrder),
+    deliveryFee: Number(settingsForm.deliveryFee),
+    freeDeliveryAbove: Number(settingsForm.freeDeliveryAbove),
+  });
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -354,14 +373,9 @@ export default function AdminPage() {
     setError("");
     setSuccess("");
     try {
-      const commissionRate = Number(settingsForm.commissionPercent) / 100;
-      const data = await updateAdminSettings(token, {
-        commissionRate,
-        minOrderAmount: Number(settingsForm.minOrderAmount),
-        supplierMinOrder: Number(settingsForm.supplierMinOrder),
-      });
+      const data = await updateAdminSettings(token, settingsPayload());
       syncSettingsForm(data.settings || {});
-      setSuccess("Pricing settings saved.");
+      setSuccess("Pricing & delivery settings saved.");
     } catch (err) {
       setError(err.message || "Could not save settings");
     } finally {
@@ -382,12 +396,7 @@ export default function AdminPage() {
     setError("");
     setSuccess("");
     try {
-      // Persist rate first so apply uses the form value
-      await updateAdminSettings(token, {
-        commissionRate: Number(settingsForm.commissionPercent) / 100,
-        minOrderAmount: Number(settingsForm.minOrderAmount),
-        supplierMinOrder: Number(settingsForm.supplierMinOrder),
-      });
+      await updateAdminSettings(token, settingsPayload());
       const data = await applyCommissionToCatalog(token);
       clearCatalogCache();
       setSuccess(
@@ -422,6 +431,7 @@ export default function AdminPage() {
         type: item.type,
         costPrice: Number(draft.costPrice),
         sellPrice: Number(draft.sellPrice),
+        stock: Number(draft.stock),
       });
       const updated = data.item;
       if (item.type === "pack") {
@@ -438,6 +448,7 @@ export default function AdminPage() {
         [key]: {
           costPrice: String(updated.costPrice ?? ""),
           sellPrice: String(updated.sellPrice ?? ""),
+          stock: String(updated.stock ?? 0),
         },
       }));
       clearCatalogCache();
@@ -476,6 +487,7 @@ export default function AdminPage() {
         [key]: {
           costPrice: String(updated.costPrice ?? ""),
           sellPrice: String(updated.sellPrice ?? ""),
+          stock: String(updated.stock ?? draft.stock ?? 0),
         },
       }));
       clearCatalogCache();
@@ -678,7 +690,7 @@ export default function AdminPage() {
             onClick={() => setTab("catalog")}
           >
             <i className="fa-solid fa-tags"></i>
-            Catalog
+            Products
             <span>{catalogProducts.length + catalogPacks.length}</span>
           </button>
           <button
@@ -709,10 +721,10 @@ export default function AdminPage() {
           <section className="admin-section">
             <div className="admin-section__head">
               <div>
-                <h2>Commission & order rules</h2>
+                <h2>Commission, delivery & order rules</h2>
                 <p>
-                  SRK cost stays hidden. Customer pays sell price = cost + your
-                  commission. You reorder manually on SRK.
+                  Configure markup, minimums, and delivery. Edit product prices
+                  under the Products tab.
                 </p>
               </div>
             </div>
@@ -724,6 +736,7 @@ export default function AdminPage() {
               </div>
             ) : (
               <form className="admin-pricing-card" onSubmit={handleSaveSettings}>
+                <h3 className="admin-pricing-card__title">Pricing</h3>
                 <div className="admin-pricing-grid">
                   <label>
                     Commission %
@@ -760,7 +773,7 @@ export default function AdminPage() {
                       }
                       required
                     />
-                    <small>Your preferred floor (may be raised automatically)</small>
+                    <small>Preferred floor (may auto-raise for SRK)</small>
                   </label>
                   <label>
                     SRK / supplier min (₹)
@@ -777,7 +790,49 @@ export default function AdminPage() {
                       }
                       required
                     />
-                    <small>Customer min auto-covers this via commission</small>
+                    <small>Your cost-side minimum on SRK</small>
+                  </label>
+                </div>
+
+                <h3 className="admin-pricing-card__title">Delivery</h3>
+                <div className="admin-pricing-grid admin-pricing-grid--2">
+                  <label>
+                    Delivery charge (₹)
+                    <input
+                      type="number"
+                      min="0"
+                      step="10"
+                      value={settingsForm.deliveryFee}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          deliveryFee: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <small>
+                      Charged when cart is below free-delivery amount
+                    </small>
+                  </label>
+                  <label>
+                    Free delivery above (₹)
+                    <input
+                      type="number"
+                      min="0"
+                      step="50"
+                      value={settingsForm.freeDeliveryAbove}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          freeDeliveryAbove: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <small>
+                      Default: ₹250 if under ₹6,000 · free at/above ₹6,000
+                    </small>
                   </label>
                 </div>
 
@@ -805,19 +860,19 @@ export default function AdminPage() {
 
                 <div className="admin-pricing-hint">
                   <p>
-                    <strong>Customer-side rule:</strong> checkout uses{" "}
-                    <em>effective min</em> = max(your customer min, SRK min ×
-                    (1 + commission)). So every paid order should cover SRK
-                    ₹{Number(settingsForm.supplierMinOrder || 2500).toLocaleString("en-IN")}{" "}
-                    cost — customers just see “add ₹X more”, never SRK.
+                    Delivery:{" "}
+                    <strong>{formatPrice(settings.deliveryFee ?? 250)}</strong>
+                    {" "}if cart &lt;{" "}
+                    <strong>
+                      {formatPrice(settings.freeDeliveryAbove ?? 6000)}
+                    </strong>
+                    ; free otherwise.
                   </p>
                   <p>
                     Rate{" "}
                     <strong>
                       {(Number(settings.commissionRate || 0) * 100).toFixed(1)}%
                     </strong>
-                    · Saved customer min{" "}
-                    <strong>{formatPrice(settings.minOrderAmount)}</strong>
                     · Effective checkout min{" "}
                     <strong>
                       {formatPrice(
@@ -831,8 +886,6 @@ export default function AdminPage() {
                           )
                       )}
                     </strong>
-                    · SRK min{" "}
-                    <strong>{formatPrice(settings.supplierMinOrder)}</strong>
                   </p>
                 </div>
               </form>
@@ -842,9 +895,10 @@ export default function AdminPage() {
           <section className="admin-section">
             <div className="admin-section__head">
               <div>
-                <h2>Catalog pricing</h2>
+                <h2>Products & packs — edit prices</h2>
                 <p>
-                  Cost = SRK price. Sell = what customers pay on Crackaro.
+                  Cost = what you pay on SRK. Sell = customer price on Crackaro.
+                  Change values and click Save.
                 </p>
               </div>
             </div>
@@ -856,33 +910,52 @@ export default function AdminPage() {
                   type="search"
                   value={catalogQuery}
                   onChange={(e) => setCatalogQuery(e.target.value)}
-                  placeholder="Search product or pack…"
+                  placeholder="Search by name, id, category…"
                   aria-label="Search catalog"
                 />
+              </div>
+              <div className="admin-filters" role="tablist" aria-label="Catalog type">
+                {[
+                  { id: "all", label: "All", count: catalogProducts.length + catalogPacks.length },
+                  { id: "product", label: "Products", count: catalogProducts.length },
+                  { id: "pack", label: "Packs", count: catalogPacks.length },
+                ].map((chip) => (
+                  <button
+                    key={chip.id}
+                    type="button"
+                    className={`admin-chip${
+                      catalogType === chip.id ? " is-active" : ""
+                    }`}
+                    onClick={() => setCatalogType(chip.id)}
+                  >
+                    {chip.label} <em>{chip.count}</em>
+                  </button>
+                ))}
               </div>
             </div>
 
             {loading ? (
               <div className="admin-loading">
                 <span className="admin-loading__spinner" />
-                Loading catalog…
+                Loading products…
               </div>
             ) : null}
 
             {!loading && catalogRows.length === 0 ? (
               <div className="admin-empty-state">
                 <i className="fa-solid fa-box-open"></i>
-                <h3>No catalog items</h3>
-                <p>Run commission SQL / catalog seed, then refresh.</p>
+                <h3>No products found</h3>
+                <p>Try another search, or run catalog SQL seed.</p>
               </div>
             ) : null}
 
-            <div className="admin-catalog-table">
+            <div className="admin-catalog-table admin-catalog-table--prices">
               <div className="admin-catalog-table__head">
-                <span>Item</span>
-                <span>Cost (SRK)</span>
-                <span>Sell</span>
-                <span>Profit / unit</span>
+                <span>Product</span>
+                <span>Cost (SRK) ₹</span>
+                <span>Sell ₹</span>
+                <span>Stock</span>
+                <span>Profit</span>
                 <span>Actions</span>
               </div>
               {catalogRows.map((item) => {
@@ -907,7 +980,7 @@ export default function AdminPage() {
                       </small>
                     </div>
                     <label className="admin-catalog-field">
-                      <span className="sr-only">Cost</span>
+                      <span className="admin-catalog-field__label">Cost</span>
                       <input
                         type="number"
                         min="0"
@@ -919,7 +992,7 @@ export default function AdminPage() {
                       />
                     </label>
                     <label className="admin-catalog-field">
-                      <span className="sr-only">Sell</span>
+                      <span className="admin-catalog-field__label">Sell</span>
                       <input
                         type="number"
                         min="0"
@@ -927,6 +1000,18 @@ export default function AdminPage() {
                         value={draft.sellPrice ?? ""}
                         onChange={(e) =>
                           handleDraftChange(key, "sellPrice", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className="admin-catalog-field">
+                      <span className="admin-catalog-field__label">Stock</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={draft.stock ?? ""}
+                        onChange={(e) =>
+                          handleDraftChange(key, "stock", e.target.value)
                         }
                       />
                     </label>
@@ -944,14 +1029,14 @@ export default function AdminPage() {
                         disabled={busy}
                         onClick={() => handleSaveCatalogItem(item)}
                       >
-                        Save
+                        {busyId === key ? "…" : "Save"}
                       </button>
                       <button
                         type="button"
                         className="btn btn-outline"
                         disabled={busy}
                         onClick={() => handleApplyItemCommission(item)}
-                        title="Set sell from cost + global commission"
+                        title="Set sell from cost + global commission %"
                       >
                         %
                       </button>
