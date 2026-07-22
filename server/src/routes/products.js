@@ -2,6 +2,14 @@ import { Router } from "express";
 import { supabase } from "../db/supabase.js";
 import { adminAuth } from "../middleware/adminAuth.js";
 import {
+  MEDIA_CLASSES,
+  PRODUCT_CATEGORIES,
+  PRODUCT_ICONS,
+  TAG_CLASSES,
+  slugifyProductId,
+} from "../constants/catalogMeta.js";
+import { storeProductImage } from "../services/productImage.js";
+import {
   formatMoney,
   lineProfit,
   normalizeSettings,
@@ -9,6 +17,7 @@ import {
   toMoney,
 } from "../services/pricing.js";
 import { ensureSettings } from "../services/shopSettings.js";
+import { notifyNtfy } from "../services/ntfy.js";
 
 const router = Router();
 
@@ -76,6 +85,15 @@ function mapPackAdmin(row, commissionRate) {
   };
 }
 
+function categoryDefaults(categoryId) {
+  return (
+    PRODUCT_CATEGORIES.find((c) => c.id === categoryId) || {
+      icon: "fa-bag-shopping",
+      mediaClass: "c-orange",
+    }
+  );
+}
+
 router.get("/", async (_req, res) => {
   try {
     if (!supabase) {
@@ -114,6 +132,15 @@ router.get("/", async (_req, res) => {
   }
 });
 
+router.get("/admin/meta", adminAuth, (_req, res) => {
+  return res.json({
+    categories: PRODUCT_CATEGORIES,
+    mediaClasses: MEDIA_CLASSES,
+    tagClasses: TAG_CLASSES,
+    icons: PRODUCT_ICONS,
+  });
+});
+
 router.get("/admin/catalog", adminAuth, async (_req, res) => {
   try {
     if (!supabase) {
@@ -135,12 +162,126 @@ router.get("/admin/catalog", adminAuth, async (_req, res) => {
 
     return res.json({
       commissionRate,
+      categories: PRODUCT_CATEGORIES,
+      mediaClasses: MEDIA_CLASSES,
+      tagClasses: TAG_CLASSES,
+      icons: PRODUCT_ICONS,
       products: (productsRes.data || []).map((row) =>
         mapProductAdmin(row, commissionRate)
       ),
       packs: (packsRes.data || []).map((row) =>
         mapPackAdmin(row, commissionRate)
       ),
+    });
+  } catch (error) {
+    console.error("[products]", error);
+    return res.status(500).json({ message: "Server error" });
+  }
+});
+
+router.post("/", adminAuth, async (req, res) => {
+  try {
+    if (!supabase) {
+      return res.status(503).json({ message: "Database is not configured." });
+    }
+
+    const name = String(req.body?.name || "").trim();
+    const category = String(req.body?.category || "").trim();
+    const description = String(req.body?.description || "").trim();
+    const unit = String(req.body?.unit || "").trim() || "/ 1 box";
+    const costPrice = Number(req.body?.costPrice);
+    let sellPrice = Number(req.body?.sellPrice);
+    const stock = Math.max(0, Math.floor(Number(req.body?.stock) || 0));
+    const active = req.body?.active !== false;
+    const tag = String(req.body?.tag || "").trim() || null;
+    const tagClass = String(req.body?.tagClass || "tag-gold").trim();
+    const defaults = categoryDefaults(category);
+    const icon = String(req.body?.icon || defaults.icon).trim();
+    const mediaClass = String(req.body?.mediaClass || defaults.mediaClass).trim();
+
+    if (!name) {
+      return res.status(400).json({ message: "Product name is required." });
+    }
+    if (!PRODUCT_CATEGORIES.some((c) => c.id === category)) {
+      return res.status(400).json({ message: "Select a valid category." });
+    }
+    if (!Number.isFinite(costPrice) || costPrice < 0) {
+      return res.status(400).json({ message: "costPrice must be a non-negative number." });
+    }
+
+    if (!Number.isFinite(sellPrice) || sellPrice < 0) {
+      const settingsRow = await ensureSettings();
+      const { commissionRate } = normalizeSettings(settingsRow);
+      sellPrice = sellFromCost(costPrice, commissionRate);
+    }
+
+    let id = String(req.body?.id || "").trim() || slugifyProductId(name);
+    id = slugifyProductId(id);
+    if (!id) {
+      return res.status(400).json({ message: "Could not build a product id from the name." });
+    }
+
+    const { data: existing } = await supabase
+      .from("products")
+      .select("id")
+      .eq("id", id)
+      .maybeSingle();
+    if (existing) {
+      id = `${id}-${Date.now().toString(36).slice(-4)}`;
+    }
+
+    let imageUrl = String(req.body?.imageUrl || "").trim() || null;
+    try {
+      imageUrl = await storeProductImage({
+        productId: id,
+        imageBase64: req.body?.imageBase64,
+        imageUrl,
+      });
+    } catch (imgErr) {
+      return res.status(400).json({ message: imgErr.message || "Image upload failed." });
+    }
+
+    const row = {
+      id,
+      category,
+      name,
+      description,
+      price: sellPrice,
+      cost_price: costPrice,
+      unit,
+      stock,
+      active,
+      icon,
+      media_class: mediaClass,
+      tag,
+      tag_class: tag ? tagClass : null,
+      image_url: imageUrl,
+      updated_at: new Date().toISOString(),
+    };
+
+    const { data, error } = await supabase
+      .from("products")
+      .insert(row)
+      .select("*")
+      .single();
+
+    if (error) {
+      console.error("[products] create", error);
+      return res.status(500).json({ message: "Could not create product." });
+    }
+
+    const settingsRow = await ensureSettings();
+    const { commissionRate } = normalizeSettings(settingsRow);
+
+    notifyNtfy({
+      title: "Product added",
+      message: `${data.name || data.id} created in catalog`,
+      tags: ["package"],
+    });
+
+    return res.status(201).json({
+      message: "Product created",
+      item: mapProductAdmin(data, commissionRate),
     });
   } catch (error) {
     console.error("[products]", error);
@@ -215,7 +356,51 @@ router.patch("/:id", adminAuth, async (req, res) => {
       patch.active = Boolean(req.body.active);
     }
 
-    // Optional: set sell from cost using current global rate
+    if (type === "product") {
+      if (req.body?.name !== undefined) {
+        const name = String(req.body.name).trim();
+        if (!name) return res.status(400).json({ message: "name cannot be empty." });
+        patch.name = name;
+      }
+      if (req.body?.description !== undefined) {
+        patch.description = String(req.body.description || "").trim();
+      }
+      if (req.body?.unit !== undefined) {
+        patch.unit = String(req.body.unit || "").trim();
+      }
+      if (req.body?.category !== undefined) {
+        const category = String(req.body.category).trim();
+        if (!PRODUCT_CATEGORIES.some((c) => c.id === category)) {
+          return res.status(400).json({ message: "Invalid category." });
+        }
+        patch.category = category;
+      }
+      if (req.body?.icon !== undefined) {
+        patch.icon = String(req.body.icon || "fa-bag-shopping").trim();
+      }
+      if (req.body?.mediaClass !== undefined) {
+        patch.media_class = String(req.body.mediaClass || "c-orange").trim();
+      }
+      if (req.body?.tag !== undefined) {
+        const tag = String(req.body.tag || "").trim();
+        patch.tag = tag || null;
+      }
+      if (req.body?.tagClass !== undefined) {
+        patch.tag_class = String(req.body.tagClass || "tag-gold").trim();
+      }
+      if (req.body?.imageUrl !== undefined || req.body?.imageBase64) {
+        try {
+          patch.image_url = await storeProductImage({
+            productId: id,
+            imageBase64: req.body?.imageBase64,
+            imageUrl: req.body?.imageUrl,
+          });
+        } catch (imgErr) {
+          return res.status(400).json({ message: imgErr.message || "Image upload failed." });
+        }
+      }
+    }
+
     if (req.body?.applyCommission === true) {
       const settingsRow = await ensureSettings();
       const { commissionRate } = normalizeSettings(settingsRow);
@@ -237,7 +422,7 @@ router.patch("/:id", adminAuth, async (req, res) => {
 
     if (Object.keys(patch).length === 1) {
       return res.status(400).json({
-        message: "Provide stock, costPrice, sellPrice/price, active, and/or applyCommission.",
+        message: "Provide fields to update.",
       });
     }
 
@@ -258,6 +443,12 @@ router.patch("/:id", adminAuth, async (req, res) => {
 
     const settingsRow = await ensureSettings();
     const { commissionRate } = normalizeSettings(settingsRow);
+
+    notifyNtfy({
+      title: type === "pack" ? "Pack updated" : "Product updated",
+      message: `${data.name || data.id} updated`,
+      tags: ["pencil"],
+    });
 
     return res.json({
       message: "Updated",

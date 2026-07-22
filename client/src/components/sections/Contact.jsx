@@ -1,5 +1,7 @@
 import { useState } from "react";
 import { submitEnquiry } from "../../api/enquiries";
+import { notifyLeadCaptured } from "../../utils/ntfy";
+import { saveLead } from "../../utils/visitor";
 
 const INITIAL_FORM = {
   name: "",
@@ -17,7 +19,16 @@ export default function Contact() {
 
   const updateField = (event) => {
     const { name, value } = event.target;
-    setForm((prev) => ({ ...prev, [name]: value }));
+    const next = { ...form, [name]: value };
+    setForm(next);
+    if (["name", "phone", "email"].includes(name)) {
+      saveLead({
+        name: next.name,
+        phone: next.phone,
+        email: next.email,
+      });
+      notifyLeadCaptured(next);
+    }
   };
 
   const handleSubmit = async (event) => {

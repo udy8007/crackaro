@@ -6,6 +6,8 @@ import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import { trackOrder } from "../api/orders";
 import { formatPrice } from "../context/CartContext";
+import { saveLead } from "../utils/visitor";
+import { notifyLeadCaptured } from "../utils/ntfy";
 
 const FLOW = [
   {
@@ -192,9 +194,14 @@ export default function TrackOrderPage() {
                       id="track-phone"
                       type="tel"
                       value={phone}
-                      onChange={(e) =>
-                        setPhone(e.target.value.replace(/\D/g, "").slice(0, 10))
-                      }
+                      onChange={(e) => {
+                        const next = e.target.value.replace(/\D/g, "").slice(0, 10);
+                        setPhone(next);
+                        if (next.length === 10) {
+                          saveLead({ phone: next });
+                          notifyLeadCaptured({ phone: next });
+                        }
+                      }}
                       placeholder="10-digit mobile"
                       required
                       minLength={10}

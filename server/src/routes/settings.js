@@ -10,6 +10,7 @@ import {
   ensureSettings,
   normalizeSettings,
 } from "../services/shopSettings.js";
+import { notifyNtfy } from "../services/ntfy.js";
 
 const router = Router();
 
@@ -127,9 +128,16 @@ router.patch("/", adminAuth, async (req, res) => {
       return res.status(500).json({ message: "Could not update settings." });
     }
 
+    const settings = normalizeSettings(data);
+    notifyNtfy({
+      title: "Shop settings updated",
+      message: `Commission ${(settings.commissionRate * 100).toFixed(1)}% · min ₹${settings.minOrderAmount} · delivery ₹${settings.deliveryFee}`,
+      tags: ["gear"],
+    });
+
     return res.json({
       message: "Settings updated",
-      settings: normalizeSettings(data),
+      settings,
     });
   } catch (error) {
     console.error("[settings]", error);
@@ -188,6 +196,12 @@ router.post("/apply-commission", adminAuth, async (_req, res) => {
         .eq("id", pack.id);
       if (!error) updatedPacks += 1;
     }
+
+    notifyNtfy({
+      title: "Commission applied",
+      message: `${(commissionRate * 100).toFixed(1)}% applied · ${updatedProducts} products · ${updatedPacks} packs`,
+      tags: ["chart_with_upwards_trend"],
+    });
 
     return res.json({
       message: `Applied ${(commissionRate * 100).toFixed(1)}% commission to catalog.`,

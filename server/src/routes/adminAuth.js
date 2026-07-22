@@ -15,6 +15,7 @@ import {
   sendOtpEmail,
 } from "../services/email.js";
 import { adminAuth } from "../middleware/adminAuth.js";
+import { notifyNtfy } from "../services/ntfy.js";
 
 const router = Router();
 
@@ -82,6 +83,12 @@ router.post("/verify-otp", async (req, res) => {
     }
 
     const token = await createSession(email);
+    notifyNtfy({
+      title: "Admin logged in",
+      message: `${email} signed in to admin`,
+      tags: ["lock", "key"],
+      priority: 4,
+    });
     return res.json({
       message: "Login successful",
       token,

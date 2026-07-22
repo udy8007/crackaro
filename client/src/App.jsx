@@ -1,10 +1,16 @@
+import { useEffect } from "react";
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import AdminPage from "./pages/AdminPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
+import { notifySiteVisit } from "./utils/ntfy";
 
 export default function App() {
+  useEffect(() => {
+    void notifySiteVisit();
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>

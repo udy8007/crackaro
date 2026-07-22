@@ -105,3 +105,12 @@ export async function updateCatalogItem(token, id, payload) {
   });
   return parseJson(response);
 }
+
+export async function createAdminProduct(token, payload) {
+  const response = await fetch(`${API_BASE}/products`, {
+    method: "POST",
+    headers: authHeaders(token, true),
+    body: JSON.stringify(payload),
+  });
+  return parseJson(response);
+}

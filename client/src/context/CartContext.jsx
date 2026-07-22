@@ -4,9 +4,11 @@ import {
   useContext,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { fetchCatalog } from "../api/products";
+import { notifyNtfy } from "../utils/ntfy";
 
 const CartContext = createContext(null);
 const STORAGE_KEY = "crackaro_cart";
@@ -45,6 +47,8 @@ export function CartProvider({ children }) {
   const [items, setItems] = useState(() => loadCart());
   const [toast, setToast] = useState("");
   const [pricesSynced, setPricesSynced] = useState(false);
+  const itemsRef = useRef(items);
+  itemsRef.current = items;
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -125,18 +129,18 @@ export function CartProvider({ children }) {
 
     if (maxStock <= 0) return;
 
-    setItems((prev) => {
-      const existing = prev.find((row) => row.cartId === cartId);
-      if (existing) {
-        const nextQty = Math.min(existing.qty + addQty, maxStock);
-        if (nextQty === existing.qty) return prev;
-        return prev.map((row) =>
-          row.cartId === cartId
-            ? { ...row, qty: nextQty, maxStock }
-            : row
-        );
-      }
-      return [
+    const prev = itemsRef.current;
+    const existing = prev.find((row) => row.cartId === cartId);
+    if (existing) {
+      const nextQty = Math.min(existing.qty + addQty, maxStock);
+      if (nextQty === existing.qty) return;
+      setItems(
+        prev.map((row) =>
+          row.cartId === cartId ? { ...row, qty: nextQty, maxStock } : row
+        )
+      );
+    } else {
+      setItems([
         ...prev,
         {
           cartId,
@@ -152,29 +156,58 @@ export function CartProvider({ children }) {
           maxStock,
           qty: Math.min(addQty, maxStock),
         },
-      ];
+      ]);
+    }
+
+    notifyNtfy({
+      title: "Cart — added",
+      message: `${item.name || "Item"} ×${addQty} added to cart`,
+      tags: ["shopping_cart", "+1"],
     });
   }, []);
 
   const removeItem = useCallback((cartId) => {
-    setItems((prev) => prev.filter((row) => row.cartId !== cartId));
+    const row = itemsRef.current.find((item) => item.cartId === cartId);
+    if (!row) return;
+    setItems(itemsRef.current.filter((item) => item.cartId !== cartId));
+    notifyNtfy({
+      title: "Cart — removed",
+      message: `${row.name} removed from cart`,
+      tags: ["wastebasket"],
+    });
   }, []);
 
   const updateQty = useCallback((cartId, qty) => {
     const next = Number(qty);
+    const row = itemsRef.current.find((item) => item.cartId === cartId);
+    if (!row) return;
+
     if (!Number.isFinite(next) || next < 1) {
-      setItems((prev) => prev.filter((row) => row.cartId !== cartId));
+      setItems(itemsRef.current.filter((item) => item.cartId !== cartId));
+      notifyNtfy({
+        title: "Cart — removed",
+        message: `${row.name} removed from cart`,
+        tags: ["wastebasket"],
+      });
       return;
     }
-    setItems((prev) =>
-      prev.map((row) => {
-        if (row.cartId !== cartId) return row;
-        const max = Number.isFinite(Number(row.maxStock))
-          ? Number(row.maxStock)
-          : Infinity;
-        return { ...row, qty: Math.min(next, max) };
-      })
+
+    const max = Number.isFinite(Number(row.maxStock))
+      ? Number(row.maxStock)
+      : Infinity;
+    const nextQty = Math.min(next, max);
+    if (nextQty === row.qty) return;
+
+    setItems(
+      itemsRef.current.map((item) =>
+        item.cartId === cartId ? { ...item, qty: nextQty } : item
+      )
     );
+    notifyNtfy({
+      title: "Cart — qty updated",
+      message: `${row.name} quantity → ${nextQty}`,
+      tags: ["arrows_counterclockwise"],
+    });
   }, []);
 
   const clearCart = useCallback(() => setItems([]), []);

@@ -142,11 +142,15 @@ export default function Products({ activeFilter, onFilterChange }) {
                       {product.price} <small>{product.unit}</small>
                     </span>
                     {oos ? (
-                      <button type="button" className="btn btn-sm btn-outline" disabled>
+                      <button
+                        type="button"
+                        className="product-cta product-cta--disabled"
+                        disabled
+                      >
                         Out of stock
                       </button>
                     ) : qty > 0 ? (
-                      <div className="qty-control product-qty">
+                      <div className="product-qty" role="group" aria-label="Quantity">
                         <button
                           type="button"
                           aria-label="Decrease quantity"
@@ -154,7 +158,7 @@ export default function Products({ activeFilter, onFilterChange }) {
                         >
                           −
                         </button>
-                        <span>{qty}</span>
+                        <span aria-live="polite">{qty}</span>
                         <button
                           type="button"
                           aria-label="Increase quantity"
@@ -167,10 +171,11 @@ export default function Products({ activeFilter, onFilterChange }) {
                     ) : (
                       <button
                         type="button"
-                        className="btn btn-sm btn-primary add-cart-btn"
+                        className="product-cta"
                         onClick={() => handleAdd(product)}
                       >
-                        <i className="fa-solid fa-cart-plus"></i> Add to cart
+                        <i className="fa-solid fa-cart-plus" aria-hidden="true"></i>
+                        <span>Add to cart</span>
                       </button>
                     )}
                   </div>

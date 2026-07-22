@@ -3110,10 +3110,11 @@ body.has-min-order-dock .back-top {
 }
 
 .product-body {
-  padding: 16px;
+  padding: 14px 14px 12px;
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-height: 0;
 }
 
 .tag {
@@ -3135,34 +3136,144 @@ body.has-min-order-dock .back-top {
 .tag-blue { background: #fae8ff; color: #a21caf; }
 .tag-purple { background: #fce7f3; color: #be185d; }
 
+.product-body h3 {
+  font-size: 0.95rem;
+  line-height: 1.25;
+  margin: 0 0 0.35rem;
+}
+
 .product-body p {
   font-size: 12px;
   flex: 1;
+  margin: 0 0 0.75rem;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .product-footer {
   display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  margin-top: 12px;
-}
-
-.product-qty button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.55rem;
+  margin-top: auto;
+  padding-top: 0.15rem;
 }
 
 .price {
   font-size: 16px;
   font-weight: 700;
   color: #be123c;
+  line-height: 1.2;
 }
 
 .price small {
   font-size: 11px;
   font-weight: 500;
   color: var(--muted);
+}
+
+.product-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.45rem;
+  width: 100%;
+  height: 40px;
+  padding: 0 0.85rem;
+  border: none;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #be123c, #c2410c 45%, #eab308);
+  color: #fff;
+  font-size: 0.8125rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(190, 18, 60, 0.22);
+  transition: background 0.2s ease, transform 0.15s ease, box-shadow 0.2s ease;
+}
+
+.product-cta i {
+  font-size: 0.85rem;
+  line-height: 1;
+  margin: 0;
+}
+
+.product-cta:hover {
+  background: linear-gradient(135deg, #9f1239, #9a3412 45%, #ca8a04);
+  color: #fff;
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(190, 18, 60, 0.28);
+}
+
+.product-cta:active {
+  transform: translateY(0);
+}
+
+.product-cta--disabled,
+.product-cta:disabled {
+  background: #f3f4f6;
+  color: #9ca3af;
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.product-cta--disabled:hover,
+.product-cta:disabled:hover {
+  background: #f3f4f6;
+  color: #9ca3af;
+  transform: none;
+  box-shadow: none;
+}
+
+.product-qty {
+  display: grid;
+  grid-template-columns: 40px 1fr 40px;
+  align-items: stretch;
+  width: 100%;
+  height: 40px;
+  border: 1px solid #fecdd3;
+  border-radius: 8px;
+  overflow: hidden;
+  background: #fff1f2;
+}
+
+.product-qty button {
+  display: grid;
+  place-items: center;
+  border: none;
+  background: #fff;
+  color: #be123c;
+  font-size: 1.1rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.product-qty button:hover:not(:disabled) {
+  background: #ffe4e6;
+  color: #9f1239;
+}
+
+.product-qty button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.product-qty span {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #881337;
+  background: transparent;
+  border-left: 1px solid #fecdd3;
+  border-right: 1px solid #fecdd3;
 }
 
 /* Packs */
@@ -7277,6 +7388,129 @@ a.admin-preview-link:hover {
   background: linear-gradient(180deg, #fffaf5 0%, #ffffff 100%);
 }
 
+.admin-section__head--row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.admin-add-product {
+  margin: 0 0 1.25rem;
+  padding: 1.15rem 1.2rem;
+  border-radius: 16px;
+  border: 1px solid rgba(194, 65, 12, 0.16);
+  background: linear-gradient(180deg, #fffaf5 0%, #ffffff 100%);
+}
+
+.admin-add-product h3 {
+  margin: 0 0 0.85rem;
+  font-size: 1rem;
+  color: var(--festival-deep);
+}
+
+.admin-add-product__grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.85rem;
+}
+
+.admin-add-product__full {
+  grid-column: 1 / -1;
+}
+
+.admin-add-product label {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #9a3412;
+}
+
+.admin-add-product input,
+.admin-add-product select,
+.admin-add-product textarea {
+  padding: 0.55rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid rgba(194, 65, 12, 0.22);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--festival-deep);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.admin-add-product small {
+  font-size: 0.72rem;
+  font-weight: 500;
+  text-transform: none;
+  letter-spacing: 0;
+  color: #78716c;
+}
+
+.admin-add-product__check {
+  flex-direction: row !important;
+  align-items: center;
+  gap: 0.5rem !important;
+  text-transform: none;
+  font-size: 0.88rem !important;
+  letter-spacing: 0;
+  color: #44403c !important;
+}
+
+.admin-add-product__check input {
+  width: auto;
+  padding: 0;
+}
+
+.admin-add-product__preview {
+  grid-column: 1 / -1;
+}
+
+.admin-add-product__preview img {
+  width: 120px;
+  height: 120px;
+  object-fit: cover;
+  border-radius: 12px;
+  border: 1px solid rgba(194, 65, 12, 0.18);
+  background: #fff7ed;
+}
+
+.admin-add-product__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  margin-top: 1rem;
+}
+
+.admin-catalog-table__identity {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.admin-catalog-thumb {
+  width: 42px;
+  height: 42px;
+  object-fit: cover;
+  border-radius: 10px;
+  flex-shrink: 0;
+  background: #fff7ed;
+  border: 1px solid rgba(194, 65, 12, 0.12);
+}
+
+.admin-catalog-thumb--empty {
+  display: grid;
+  place-items: center;
+  color: #c2410c;
+  font-size: 0.9rem;
+}
+
 .admin-pricing-card__title {
   margin: 1.1rem 0 0.65rem;
   font-size: 0.78rem;
@@ -7391,6 +7625,11 @@ a.admin-preview-link:hover {
   background: #fafafa;
 }
 
+.admin-catalog-table__row.is-editing {
+  background: #fff7ed !important;
+  outline: 1px solid rgba(194, 65, 12, 0.28);
+}
+
 .admin-catalog-table__name strong {
   display: block;
   font-size: 0.92rem;
@@ -7460,7 +7699,8 @@ a.admin-preview-link:hover {
 
 @media (max-width: 900px) {
   .admin-pricing-grid,
-  .admin-pricing-grid--2 {
+  .admin-pricing-grid--2,
+  .admin-add-product__grid {
     grid-template-columns: 1fr;
   }
 

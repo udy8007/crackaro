@@ -12,6 +12,7 @@ import {
   toMoney,
 } from "../services/pricing.js";
 import { ensureSettings } from "../services/shopSettings.js";
+import { notifyNtfy } from "../services/ntfy.js";
 
 const router = Router();
 
@@ -332,6 +333,26 @@ router.post("/", async (req, res) => {
       });
     }
 
+    notifyNtfy({
+      title: `Order · ${data.order_number}`,
+      message: [
+        `Total ₹${data.total} · UTR ${cleanUtr}`,
+        `Name: ${row.name}`,
+        `Mobile: ${data.phone}`,
+        row.email ? `Email: ${row.email}` : null,
+        `Address: ${row.address}`,
+        [row.city, row.state, row.pincode].filter(Boolean).join(", "),
+        `Items: ${(cartItems || [])
+          .map((i) => `${i.name}×${i.qty}`)
+          .slice(0, 8)
+          .join(", ")}`,
+      ]
+        .filter(Boolean)
+        .join("\n"),
+      tags: ["moneybag", "tada"],
+      priority: 5,
+    });
+
     return res.status(201).json({
       message: "Order placed successfully. Waiting for admin payment verification.",
       order: data,
@@ -372,6 +393,12 @@ router.get("/track/:orderNumber", async (req, res) => {
     }
 
     const { phone: _phone, ...safe } = data;
+    notifyNtfy({
+      title: "Order tracked",
+      message: `${data.order_number} · ${data.name || "customer"} · ${phone} · status ${data.status} · ₹${data.total}`,
+      tags: ["mag", "telephone_receiver"],
+      priority: 3,
+    });
     return res.json({ order: safe });
   } catch (error) {
     console.error("[orders]", error);
@@ -443,6 +470,13 @@ router.patch("/:id/status", adminAuth, async (req, res) => {
       console.error("[orders]", error);
       return res.status(500).json({ message: "Could not update order status." });
     }
+
+    notifyNtfy({
+      title: "Order status updated",
+      message: `${data.order_number || data.id} → ${status}`,
+      tags: ["clipboard"],
+      priority: 3,
+    });
 
     return res.json({ message: "Order updated", order: data });
   } catch (error) {

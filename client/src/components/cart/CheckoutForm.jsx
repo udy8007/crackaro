@@ -3,6 +3,8 @@ import { getPaymentConfig, placeOrder } from "../../api/orders";
 import { quoteShipping } from "../../api/shipping";
 import { fetchPublicSettings } from "../../api/settings";
 import { formatPrice, useCart } from "../../context/CartContext";
+import { notifyLeadCaptured } from "../../utils/ntfy";
+import { saveLead } from "../../utils/visitor";
 
 const INITIAL = {
   name: "",
@@ -105,21 +107,39 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
 
   const updateField = (event) => {
     const { name, value } = event.target;
+    let next = { ...form };
     if (name === "utr") {
-      setForm((prev) => ({
-        ...prev,
+      next = {
+        ...form,
         utr: value.replace(/[^A-Za-z0-9]/g, "").toUpperCase().slice(0, 22),
-      }));
+      };
+      setForm(next);
       return;
     }
     if (name === "pincode") {
-      setForm((prev) => ({
-        ...prev,
+      next = {
+        ...form,
         pincode: value.replace(/\D/g, "").slice(0, 6),
-      }));
+      };
+      setForm(next);
+      saveLead({ pincode: next.pincode });
       return;
     }
-    setForm((prev) => ({ ...prev, [name]: value }));
+    next = { ...form, [name]: value };
+    setForm(next);
+
+    if (["name", "phone", "email", "address", "city", "state"].includes(name)) {
+      saveLead({
+        name: next.name,
+        phone: next.phone,
+        email: next.email,
+        address: next.address,
+        city: next.city,
+        state: next.state,
+        pincode: next.pincode,
+      });
+      notifyLeadCaptured(next);
+    }
   };
 
   const handleSubmit = async (event) => {

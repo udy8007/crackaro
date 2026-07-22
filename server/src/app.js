@@ -7,11 +7,13 @@ import adminAuthRouter from "./routes/adminAuth.js";
 import productsRouter from "./routes/products.js";
 import shippingRouter from "./routes/shipping.js";
 import settingsRouter from "./routes/settings.js";
+import ntfyRouter from "./routes/ntfy.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
 app.use(cors());
-app.use(express.json());
+app.use(express.json({ limit: "4mb" }));
 
 app.get("/api/health", (_req, res) => {
   res.json({
@@ -30,6 +32,7 @@ app.use("/api/shipping", shippingRouter);
 app.use("/api/settings", settingsRouter);
 app.use("/api/enquiries", enquiriesRouter);
 app.use("/api/orders", ordersRouter);
+app.use("/api/ntfy", ntfyRouter);
 
 app.use((err, _req, res, _next) => {
   console.error(err);

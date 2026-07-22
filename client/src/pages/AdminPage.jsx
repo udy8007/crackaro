@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   applyCommissionToCatalog,
+  createAdminProduct,
   fetchAdminCatalog,
   fetchAdminEnquiries,
   fetchAdminOrders,
@@ -14,6 +15,13 @@ import {
   verifyAdminOtp,
 } from "../api/admin";
 import { clearCatalogCache } from "../api/products";
+import {
+  EMPTY_PRODUCT_FORM,
+  MEDIA_CLASSES,
+  PRODUCT_CATEGORIES,
+  TAG_CLASSES,
+  readImageAsDataUrl,
+} from "../constants/catalogMeta";
 import { formatPrice } from "../context/CartContext";
 
 function orderCost(order) {
@@ -121,6 +129,9 @@ export default function AdminPage() {
   const [catalogQuery, setCatalogQuery] = useState("");
   const [catalogType, setCatalogType] = useState("all");
   const [draftPrices, setDraftPrices] = useState({});
+  const [showProductForm, setShowProductForm] = useState(false);
+  const [editingProductId, setEditingProductId] = useState("");
+  const [productForm, setProductForm] = useState(EMPTY_PRODUCT_FORM);
 
   const handleAuthFailure = (message) => {
     if (/session|unauthorized|login/i.test(message || "")) {
@@ -418,6 +429,132 @@ export default function AdminPage() {
         [field]: value,
       },
     }));
+  };
+
+  const updateProductForm = (field, value) => {
+    setProductForm((prev) => {
+      const next = { ...prev, [field]: value };
+      if (field === "category") {
+        const cat = PRODUCT_CATEGORIES.find((c) => c.id === value);
+        if (cat) {
+          next.icon = cat.icon;
+          next.mediaClass = cat.mediaClass;
+        }
+      }
+      return next;
+    });
+  };
+
+  const handleProductImage = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const dataUrl = await readImageAsDataUrl(file);
+      setProductForm((prev) => ({
+        ...prev,
+        imageBase64: dataUrl,
+        imagePreview: dataUrl,
+      }));
+    } catch (err) {
+      setError(err.message || "Could not read image");
+    }
+  };
+
+  const closeProductForm = () => {
+    setProductForm(EMPTY_PRODUCT_FORM);
+    setEditingProductId("");
+    setShowProductForm(false);
+  };
+
+  const openCreateProduct = () => {
+    setEditingProductId("");
+    setProductForm(EMPTY_PRODUCT_FORM);
+    setShowProductForm(true);
+    setError("");
+    setSuccess("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const openEditProduct = (item) => {
+    if (item.type !== "product") return;
+    setEditingProductId(item.id);
+    setProductForm({
+      name: item.name || "",
+      category: item.category || "sparklers",
+      description: item.description || "",
+      unit: item.unit || "/ 1 box",
+      costPrice: String(item.costPrice ?? ""),
+      sellPrice: String(item.sellPrice ?? item.priceValue ?? ""),
+      stock: String(item.stock ?? 0),
+      tag: item.tag || "",
+      tagClass: item.tagClass || "tag-gold",
+      mediaClass: item.mediaClass || "c-orange",
+      icon: item.icon || "fa-bag-shopping",
+      imageUrl: item.imageUrl || "",
+      imageBase64: "",
+      imagePreview: item.imageUrl || "",
+      active: item.active !== false,
+    });
+    setShowProductForm(true);
+    setError("");
+    setSuccess("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  };
+
+  const handleSaveProductForm = async (event) => {
+    event.preventDefault();
+    const isEdit = Boolean(editingProductId);
+    setBusyId(isEdit ? "edit-product" : "create-product");
+    setError("");
+    setSuccess("");
+    try {
+      const payload = {
+        type: "product",
+        name: productForm.name.trim(),
+        category: productForm.category,
+        description: productForm.description.trim(),
+        unit: productForm.unit.trim(),
+        costPrice: Number(productForm.costPrice),
+        sellPrice: productForm.sellPrice
+          ? Number(productForm.sellPrice)
+          : undefined,
+        stock: Number(productForm.stock),
+        tag: productForm.tag.trim(),
+        tagClass: productForm.tagClass,
+        mediaClass: productForm.mediaClass,
+        icon: productForm.icon,
+        active: productForm.active,
+      };
+
+      if (productForm.imageBase64) {
+        payload.imageBase64 = productForm.imageBase64;
+      } else if (productForm.imageUrl.trim()) {
+        payload.imageUrl = productForm.imageUrl.trim();
+      }
+
+      let data;
+      if (isEdit) {
+        // Keep sell price required on edit
+        payload.sellPrice = Number(productForm.sellPrice);
+        data = await updateCatalogItem(token, editingProductId, payload);
+        setSuccess(`Product “${data.item?.name}” updated.`);
+      } else {
+        data = await createAdminProduct(token, payload);
+        setSuccess(`Product “${data.item?.name}” created.`);
+      }
+
+      clearCatalogCache();
+      closeProductForm();
+      await loadCatalog();
+      setCatalogType("product");
+    } catch (err) {
+      setError(
+        err.message ||
+          (isEdit ? "Could not update product" : "Could not create product")
+      );
+    } finally {
+      setBusyId("");
+    }
   };
 
   const handleSaveCatalogItem = async (item) => {
@@ -893,15 +1030,235 @@ export default function AdminPage() {
           </section>
         ) : tab === "catalog" ? (
           <section className="admin-section">
-            <div className="admin-section__head">
+            <div className="admin-section__head admin-section__head--row">
               <div>
-                <h2>Products & packs — edit prices</h2>
+                <h2>Products & packs</h2>
                 <p>
-                  Cost = what you pay on SRK. Sell = customer price on Crackaro.
-                  Change values and click Save.
+                  Add new products with category & image, or edit Cost / Sell /
+                  Stock below.
                 </p>
               </div>
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={() => {
+                  if (showProductForm) closeProductForm();
+                  else openCreateProduct();
+                }}
+              >
+                <i
+                  className={`fa-solid fa-${showProductForm ? "xmark" : "plus"}`}
+                ></i>
+                {showProductForm ? "Close form" : "Add product"}
+              </button>
             </div>
+
+            {showProductForm ? (
+              <form
+                className="admin-add-product"
+                onSubmit={handleSaveProductForm}
+              >
+                <h3>
+                  {editingProductId
+                    ? `Edit product · ${editingProductId}`
+                    : "New product"}
+                </h3>
+                <div className="admin-add-product__grid">
+                  <label className="admin-add-product__full">
+                    Product name *
+                    <input
+                      type="text"
+                      value={productForm.name}
+                      onChange={(e) => updateProductForm("name", e.target.value)}
+                      placeholder="e.g. 15 cm Electric Sparklers"
+                      required
+                    />
+                  </label>
+                  <label>
+                    Category *
+                    <select
+                      value={productForm.category}
+                      onChange={(e) =>
+                        updateProductForm("category", e.target.value)
+                      }
+                      required
+                    >
+                      {PRODUCT_CATEGORIES.map((cat) => (
+                        <option key={cat.id} value={cat.id}>
+                          {cat.label}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Unit
+                    <input
+                      type="text"
+                      value={productForm.unit}
+                      onChange={(e) => updateProductForm("unit", e.target.value)}
+                      placeholder="/ 1 box (10 pcs)"
+                    />
+                  </label>
+                  <label className="admin-add-product__full">
+                    Description
+                    <textarea
+                      rows={3}
+                      value={productForm.description}
+                      onChange={(e) =>
+                        updateProductForm("description", e.target.value)
+                      }
+                      placeholder="Short product description for the shop"
+                    />
+                  </label>
+                  <label>
+                    Cost (SRK) ₹ *
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={productForm.costPrice}
+                      onChange={(e) =>
+                        updateProductForm("costPrice", e.target.value)
+                      }
+                      required
+                    />
+                  </label>
+                  <label>
+                    Sell (Crackaro) ₹{editingProductId ? " *" : ""}
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={productForm.sellPrice}
+                      onChange={(e) =>
+                        updateProductForm("sellPrice", e.target.value)
+                      }
+                      placeholder={
+                        editingProductId
+                          ? "Customer price"
+                          : "Auto from commission if empty"
+                      }
+                      required={Boolean(editingProductId)}
+                    />
+                  </label>
+                  <label>
+                    Stock *
+                    <input
+                      type="number"
+                      min="0"
+                      step="1"
+                      value={productForm.stock}
+                      onChange={(e) => updateProductForm("stock", e.target.value)}
+                      required
+                    />
+                  </label>
+                  <label>
+                    Offer tag
+                    <input
+                      type="text"
+                      value={productForm.tag}
+                      onChange={(e) => updateProductForm("tag", e.target.value)}
+                      placeholder="80% Off"
+                    />
+                  </label>
+                  <label>
+                    Tag style
+                    <select
+                      value={productForm.tagClass}
+                      onChange={(e) =>
+                        updateProductForm("tagClass", e.target.value)
+                      }
+                    >
+                      {TAG_CLASSES.map((cls) => (
+                        <option key={cls} value={cls}>
+                          {cls}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label>
+                    Media colour
+                    <select
+                      value={productForm.mediaClass}
+                      onChange={(e) =>
+                        updateProductForm("mediaClass", e.target.value)
+                      }
+                    >
+                      {MEDIA_CLASSES.map((cls) => (
+                        <option key={cls} value={cls}>
+                          {cls}
+                        </option>
+                      ))}
+                    </select>
+                  </label>
+                  <label className="admin-add-product__full">
+                    Image file
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp,image/gif"
+                      onChange={handleProductImage}
+                    />
+                    <small>JPG/PNG/WebP under 2.5 MB</small>
+                  </label>
+                  <label className="admin-add-product__full">
+                    Or image URL / path
+                    <input
+                      type="text"
+                      value={productForm.imageUrl}
+                      onChange={(e) =>
+                        updateProductForm("imageUrl", e.target.value)
+                      }
+                      placeholder="https://… or /images/products/my-item.jpg"
+                    />
+                  </label>
+                  {(productForm.imagePreview || productForm.imageUrl) && (
+                    <div className="admin-add-product__preview">
+                      <img
+                        src={productForm.imagePreview || productForm.imageUrl}
+                        alt="Product preview"
+                      />
+                    </div>
+                  )}
+                  <label className="admin-add-product__check">
+                    <input
+                      type="checkbox"
+                      checked={productForm.active}
+                      onChange={(e) =>
+                        updateProductForm("active", e.target.checked)
+                      }
+                    />
+                    Active (visible in shop)
+                  </label>
+                </div>
+                <div className="admin-add-product__actions">
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={
+                      busyId === "create-product" || busyId === "edit-product"
+                    }
+                  >
+                    <i
+                      className={`fa-solid fa-${
+                        editingProductId ? "floppy-disk" : "plus"
+                      }`}
+                    ></i>
+                    {busyId === "create-product" || busyId === "edit-product"
+                      ? "Saving…"
+                      : editingProductId
+                        ? "Save changes"
+                        : "Create product"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={closeProductForm}
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </form>
+            ) : null}
 
             <div className="admin-toolbar">
               <div className="admin-search">
@@ -970,14 +1327,35 @@ export default function AdminPage() {
                 const busy =
                   busyId === key || busyId === `${key}-apply`;
                 return (
-                  <div key={key} className="admin-catalog-table__row">
+                  <div
+                    key={key}
+                    className={`admin-catalog-table__row${
+                      editingProductId === item.id ? " is-editing" : ""
+                    }`}
+                  >
                     <div className="admin-catalog-table__name">
-                      <strong>{item.name}</strong>
-                      <small>
-                        {item.type}
-                        {item.category ? ` · ${item.category}` : ""}
-                        {item.active === false ? " · inactive" : ""}
-                      </small>
+                      <div className="admin-catalog-table__identity">
+                        {item.imageUrl ? (
+                          <img
+                            src={item.imageUrl}
+                            alt=""
+                            className="admin-catalog-thumb"
+                          />
+                        ) : (
+                          <span className="admin-catalog-thumb admin-catalog-thumb--empty">
+                            <i className={`fa-solid ${item.icon || "fa-bag-shopping"}`}></i>
+                          </span>
+                        )}
+                        <div>
+                          <strong>{item.name}</strong>
+                          <small>
+                            {item.type}
+                            {item.category ? ` · ${item.category}` : ""}
+                            {item.active === false ? " · inactive" : ""}
+                            {editingProductId === item.id ? " · editing" : ""}
+                          </small>
+                        </div>
+                      </div>
                     </div>
                     <label className="admin-catalog-field">
                       <span className="admin-catalog-field__label">Cost</span>
@@ -1023,6 +1401,17 @@ export default function AdminPage() {
                       {formatPrice(unitProfit)}
                     </span>
                     <div className="admin-catalog-actions">
+                      {item.type === "product" ? (
+                        <button
+                          type="button"
+                          className="btn btn-outline"
+                          disabled={busy}
+                          onClick={() => openEditProduct(item)}
+                          title="Edit full product details"
+                        >
+                          Edit
+                        </button>
+                      ) : null}
                       <button
                         type="button"
                         className="btn btn-primary"

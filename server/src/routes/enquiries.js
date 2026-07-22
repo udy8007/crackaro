@@ -1,6 +1,7 @@
 import { Router } from "express";
 import { supabase } from "../db/supabase.js";
 import { adminAuth } from "../middleware/adminAuth.js";
+import { notifyNtfy } from "../services/ntfy.js";
 
 const router = Router();
 
@@ -41,6 +42,13 @@ router.post("/", async (req, res) => {
         message: "Could not save enquiry. Check Supabase table setup.",
       });
     }
+
+    notifyNtfy({
+      title: "New enquiry",
+      message: `${row.name} · ${row.phone}${row.interest ? ` · ${row.interest}` : ""}\n${row.message}`,
+      tags: ["email", "raising_hand"],
+      priority: 4,
+    });
 
     return res.status(201).json({
       message: "Enquiry saved",
