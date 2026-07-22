@@ -6,6 +6,7 @@ import ordersRouter from "./routes/orders.js";
 import adminAuthRouter from "./routes/adminAuth.js";
 import productsRouter from "./routes/products.js";
 import shippingRouter from "./routes/shipping.js";
+import settingsRouter from "./routes/settings.js";
 
 const app = express();
 
@@ -26,6 +27,7 @@ app.get("/api/health", (_req, res) => {
 app.use("/api/admin/auth", adminAuthRouter);
 app.use("/api/products", productsRouter);
 app.use("/api/shipping", shippingRouter);
+app.use("/api/settings", settingsRouter);
 app.use("/api/enquiries", enquiriesRouter);
 app.use("/api/orders", ordersRouter);
 

@@ -1,5 +1,6 @@
 import { useMemo, useState } from "react";
 import FestivalBanner from "../components/layout/FestivalBanner";
+import MinOrderBar from "../components/layout/MinOrderBar";
 import Topbar from "../components/layout/Topbar";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
@@ -54,6 +55,7 @@ export default function HomePage() {
         <Contact />
       </main>
       <Footer />
+      <MinOrderBar />
       <BackToTop />
     </>
   );

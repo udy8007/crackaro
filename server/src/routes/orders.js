@@ -2,6 +2,16 @@ import { Router } from "express";
 import { supabase } from "../db/supabase.js";
 import { adminAuth } from "../middleware/adminAuth.js";
 import { quoteShipping } from "../services/shipping.js";
+import {
+  DEFAULT_MIN_ORDER,
+  effectiveCustomerMinOrder,
+  formatMoney,
+  lineProfit,
+  normalizeSettings,
+  sellFromCost,
+  toMoney,
+} from "../services/pricing.js";
+import { ensureSettings } from "../services/shopSettings.js";
 
 const router = Router();
 
@@ -16,10 +26,6 @@ const ADMIN_STATUSES = [
 ];
 
 const UTR_PATTERN = /^[A-Z0-9]{8,22}$/;
-
-function formatMoney(value) {
-  return `₹${Number(value).toLocaleString("en-IN")}`;
-}
 
 function normalizePhone(phone) {
   const digits = String(phone || "").replace(/\D/g, "");
@@ -81,7 +87,8 @@ async function resolveTrustedItems(rawItems) {
       };
     }
 
-    const priceValue = Number(data.price) || 0;
+    const priceValue = toMoney(data.price);
+    const costPrice = toMoney(data.cost_price ?? data.price);
     lines.push({
       cartId: `${type}-${id}`,
       id,
@@ -89,8 +96,12 @@ async function resolveTrustedItems(rawItems) {
       name: data.name,
       price: formatMoney(priceValue),
       priceValue,
+      costPrice,
       unit: data.unit || (type === "pack" ? "/ pack" : ""),
       qty,
+      lineTotal: toMoney(priceValue * qty),
+      costTotal: toMoney(costPrice * qty),
+      profit: lineProfit(priceValue, costPrice, qty),
       icon: type === "product" ? data.icon : "fa-gift",
       mediaClass: type === "product" ? data.media_class : "c-orange",
     });
@@ -219,6 +230,54 @@ router.post("/", async (req, res) => {
       (sum, item) => sum + item.priceValue * item.qty,
       0
     );
+    const costSubtotal = cartItems.reduce(
+      (sum, item) => sum + item.costPrice * item.qty,
+      0
+    );
+    const profit = toMoney(subtotal - costSubtotal);
+
+    let settings = {
+      minOrderAmount: DEFAULT_MIN_ORDER,
+      supplierMinOrder: 2500,
+      commissionRate: 0.2,
+      effectiveMinOrderAmount: DEFAULT_MIN_ORDER,
+    };
+    try {
+      const settingsRow = await ensureSettings();
+      settings = normalizeSettings(settingsRow);
+    } catch (settingsErr) {
+      console.warn("[orders] settings fallback", settingsErr);
+      settings.effectiveMinOrderAmount = effectiveCustomerMinOrder(settings);
+    }
+
+    const minOrderAmount = settings.effectiveMinOrderAmount;
+
+    if (subtotal < minOrderAmount) {
+      const shortfall = Math.max(0, minOrderAmount - subtotal);
+      return res.status(400).json({
+        message: `Minimum order is ${formatMoney(minOrderAmount)}. Add ${formatMoney(shortfall)} more to place your order.`,
+        minOrderAmount,
+        subtotal,
+        shortfall,
+      });
+    }
+
+    // Safety net: cart sell can clear the ₹ min while SRK cost is still short
+    // (custom sell prices). Ask customer to add more — never mention supplier.
+    if (costSubtotal < settings.supplierMinOrder) {
+      const costShort = settings.supplierMinOrder - costSubtotal;
+      const addAbout = Math.max(
+        sellFromCost(costShort, settings.commissionRate),
+        Math.ceil(minOrderAmount - subtotal) || 0
+      );
+      const raisedMin = toMoney(subtotal + addAbout);
+      return res.status(400).json({
+        message: `Add about ${formatMoney(addAbout)} more to reach the minimum order (need ~${formatMoney(raisedMin)}).`,
+        minOrderAmount: raisedMin,
+        subtotal,
+        shortfall: addAbout,
+      });
+    }
 
     const shipping = quoteShipping({
       pincode: pincode.trim(),
@@ -246,6 +305,8 @@ router.post("/", async (req, res) => {
       pincode: pincode.trim(),
       items: cartItems,
       subtotal,
+      cost_subtotal: toMoney(costSubtotal),
+      profit,
       shipping_fee: shipping.fee,
       shipping_zone: shipping.zone,
       total: grandTotal,

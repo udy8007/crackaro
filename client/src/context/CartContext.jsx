@@ -6,6 +6,7 @@ import {
   useMemo,
   useState,
 } from "react";
+import { fetchCatalog } from "../api/products";
 
 const CartContext = createContext(null);
 const STORAGE_KEY = "crackaro_cart";
@@ -29,9 +30,21 @@ export function formatPrice(value) {
   return `₹${Number(value).toLocaleString("en-IN")}`;
 }
 
+function buildCatalogMap(catalog) {
+  const map = new Map();
+  for (const product of catalog.products || []) {
+    map.set(`product-${product.id}`, product);
+  }
+  for (const pack of catalog.packs || []) {
+    map.set(`pack-${pack.id}`, pack);
+  }
+  return map;
+}
+
 export function CartProvider({ children }) {
   const [items, setItems] = useState(() => loadCart());
   const [toast, setToast] = useState("");
+  const [pricesSynced, setPricesSynced] = useState(false);
 
   useEffect(() => {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
@@ -42,6 +55,67 @@ export function CartProvider({ children }) {
     const timer = setTimeout(() => setToast(""), 2800);
     return () => clearTimeout(timer);
   }, [toast]);
+
+  /** Refresh cart line prices from live catalog (server is source of truth). */
+  const syncPricesFromCatalog = useCallback(async ({ force = false } = {}) => {
+    try {
+      const catalog = await fetchCatalog({ force });
+      const map = buildCatalogMap(catalog);
+      let changed = false;
+      let nextItems = [];
+
+      setItems((prev) => {
+        const next = [];
+        for (const row of prev) {
+          const key = `${row.type || "product"}-${row.id}`;
+          const live = map.get(key);
+          if (!live || live.active === false || Number(live.stock) <= 0) {
+            changed = true;
+            continue; // drop unavailable items
+          }
+          const priceValue = Number(live.priceValue) || parsePrice(live.price);
+          const maxStock = Number(live.stock);
+          const qty = Math.min(row.qty, maxStock);
+          if (
+            priceValue !== row.priceValue ||
+            live.price !== row.price ||
+            qty !== row.qty ||
+            maxStock !== row.maxStock ||
+            live.name !== row.name
+          ) {
+            changed = true;
+          }
+          next.push({
+            ...row,
+            name: live.name,
+            price: live.price,
+            priceValue,
+            unit: live.unit || row.unit || "",
+            icon: live.icon || row.icon,
+            mediaClass: live.mediaClass || row.mediaClass,
+            imageUrl: live.imageUrl || row.imageUrl || null,
+            maxStock,
+            qty,
+          });
+        }
+        nextItems = next;
+        return changed ? next : prev;
+      });
+
+      if (changed) {
+        setToast("Cart prices updated to latest rates.");
+      }
+      setPricesSynced(true);
+      return { ok: true, changed, items: nextItems };
+    } catch {
+      setPricesSynced(true);
+      return { ok: false, changed: false, items: null };
+    }
+  }, []);
+
+  useEffect(() => {
+    syncPricesFromCatalog();
+  }, [syncPricesFromCatalog]);
 
   const addItem = useCallback((item) => {
     const cartId = item.cartId || `${item.type}-${item.id}`;
@@ -122,22 +196,26 @@ export function CartProvider({ children }) {
       count,
       total,
       toast,
+      pricesSynced,
       addItem,
       removeItem,
       updateQty,
       clearCart,
       clearToast,
+      syncPricesFromCatalog,
     }),
     [
       items,
       count,
       total,
       toast,
+      pricesSynced,
       addItem,
       removeItem,
       updateQty,
       clearCart,
       clearToast,
+      syncPricesFromCatalog,
     ]
   );
 

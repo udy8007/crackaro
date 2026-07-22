@@ -45,7 +45,7 @@ npm install --prefix server
 copy server\.env.example server\.env
 ```
 
-1. Run `server/sql/schema.sql` in Supabase SQL Editor  
+1. Run `server/sql/schema.sql` (and `commission.sql` for middleman pricing) in Supabase SQL Editor, or `npm run setup:db --prefix server`  
 2. Fill `server/.env`:
 
 ```env

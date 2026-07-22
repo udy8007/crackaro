@@ -1,14 +1,35 @@
 import { useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
 import {
+  applyCommissionToCatalog,
+  fetchAdminCatalog,
   fetchAdminEnquiries,
   fetchAdminOrders,
+  fetchAdminSettings,
   logoutAdmin,
   requestAdminOtp,
+  updateAdminSettings,
+  updateCatalogItem,
   updateOrderStatus,
   verifyAdminOtp,
 } from "../api/admin";
+import { clearCatalogCache } from "../api/products";
 import { formatPrice } from "../context/CartContext";
+
+function orderCost(order) {
+  if (order.cost_subtotal != null) return Number(order.cost_subtotal) || 0;
+  return (order.items || []).reduce(
+    (sum, item) =>
+      sum + (Number(item.costPrice) || 0) * (Number(item.qty) || 1),
+    0
+  );
+}
+
+function orderProfit(order) {
+  if (order.profit != null) return Number(order.profit) || 0;
+  const sell = Number(order.subtotal ?? order.total) || 0;
+  return sell - orderCost(order);
+}
 
 const TOKEN_KEY = "crackaro_admin_token";
 const DEFAULT_ADMIN_EMAIL = "mr.mit97@gmail.com";
@@ -71,6 +92,18 @@ export default function AdminPage() {
   const [previewUrl, setPreviewUrl] = useState("");
   const [orders, setOrders] = useState([]);
   const [enquiries, setEnquiries] = useState([]);
+  const [catalogProducts, setCatalogProducts] = useState([]);
+  const [catalogPacks, setCatalogPacks] = useState([]);
+  const [settings, setSettings] = useState({
+    commissionRate: 0.2,
+    minOrderAmount: 3000,
+    supplierMinOrder: 2500,
+  });
+  const [settingsForm, setSettingsForm] = useState({
+    commissionPercent: "20",
+    minOrderAmount: "3000",
+    supplierMinOrder: "2500",
+  });
   const [tab, setTab] = useState("orders");
   const [statuses, setStatuses] = useState(Object.keys(STATUS_LABELS));
   const [filter, setFilter] = useState("all");
@@ -78,8 +111,11 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(false);
   const [authLoading, setAuthLoading] = useState(false);
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
   const [busyId, setBusyId] = useState("");
   const [query, setQuery] = useState("");
+  const [catalogQuery, setCatalogQuery] = useState("");
+  const [draftPrices, setDraftPrices] = useState({});
 
   const handleAuthFailure = (message) => {
     if (/session|unauthorized|login/i.test(message || "")) {
@@ -120,22 +156,110 @@ export default function AdminPage() {
     }
   };
 
+  const syncSettingsForm = (next) => {
+    setSettings(next);
+    setSettingsForm({
+      commissionPercent: String(
+        Math.round(Number(next.commissionRate || 0) * 1000) / 10
+      ),
+      minOrderAmount: String(next.minOrderAmount ?? 3000),
+      supplierMinOrder: String(next.supplierMinOrder ?? 2500),
+    });
+  };
+
+  const loadSettings = async (sessionToken = token) => {
+    if (!sessionToken) return;
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchAdminSettings(sessionToken);
+      syncSettingsForm(data.settings || {});
+    } catch (err) {
+      setError(err.message || "Failed to load settings");
+      handleAuthFailure(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadCatalog = async (sessionToken = token) => {
+    if (!sessionToken) return;
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchAdminCatalog(sessionToken);
+      setCatalogProducts(data.products || []);
+      setCatalogPacks(data.packs || []);
+      if (data.commissionRate != null) {
+        setSettings((prev) => ({
+          ...prev,
+          commissionRate: Number(data.commissionRate),
+        }));
+      }
+      const drafts = {};
+      for (const item of [...(data.products || []), ...(data.packs || [])]) {
+        drafts[`${item.type}-${item.id}`] = {
+          costPrice: String(item.costPrice ?? ""),
+          sellPrice: String(item.sellPrice ?? item.priceValue ?? ""),
+        };
+      }
+      setDraftPrices(drafts);
+    } catch (err) {
+      setError(err.message || "Failed to load catalog");
+      handleAuthFailure(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     if (!token) return;
+    // Keep supplier min available on Orders without opening Commission tab
+    fetchAdminSettings(token)
+      .then((data) => {
+        if (data.settings) syncSettingsForm(data.settings);
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [token]);
+
+  useEffect(() => {
+    if (!token) return;
+    setSuccess("");
     if (tab === "orders") loadOrders(token);
-    else loadEnquiries(token);
+    else if (tab === "enquiries") loadEnquiries(token);
+    else if (tab === "pricing") loadSettings(token);
+    else if (tab === "catalog") loadCatalog(token);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [token, tab]);
 
   const stats = useMemo(() => {
+    const active = orders.filter(
+      (o) => !["rejected", "cancelled"].includes(o.status)
+    );
     const pending = orders.filter((o) => o.status === "payment_submitted").length;
     const verified = orders.filter((o) => o.status === "verified").length;
     const shipped = orders.filter((o) => o.status === "shipped").length;
-    const revenue = orders
-      .filter((o) => !["rejected", "cancelled"].includes(o.status))
-      .reduce((sum, o) => sum + Number(o.total || 0), 0);
-    return { pending, verified, shipped, revenue };
+    const revenue = active.reduce((sum, o) => sum + Number(o.total || 0), 0);
+    const profit = active.reduce((sum, o) => sum + orderProfit(o), 0);
+    return { pending, verified, shipped, revenue, profit };
   }, [orders]);
+
+  const catalogRows = useMemo(() => {
+    const q = catalogQuery.trim().toLowerCase();
+    const rows = [
+      ...catalogProducts.map((p) => ({ ...p, type: "product" })),
+      ...catalogPacks.map((p) => ({ ...p, type: "pack" })),
+    ];
+    if (!q) return rows;
+    return rows.filter((row) =>
+      [row.name, row.id, row.category, row.type]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase()
+        .includes(q)
+    );
+  }, [catalogProducts, catalogPacks, catalogQuery]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -204,6 +328,8 @@ export default function AdminPage() {
     setToken("");
     setOrders([]);
     setEnquiries([]);
+    setCatalogProducts([]);
+    setCatalogPacks([]);
     setStep("email");
   };
 
@@ -220,6 +346,152 @@ export default function AdminPage() {
     } finally {
       setBusyId("");
     }
+  };
+
+  const handleSaveSettings = async (event) => {
+    event.preventDefault();
+    setBusyId("settings");
+    setError("");
+    setSuccess("");
+    try {
+      const commissionRate = Number(settingsForm.commissionPercent) / 100;
+      const data = await updateAdminSettings(token, {
+        commissionRate,
+        minOrderAmount: Number(settingsForm.minOrderAmount),
+        supplierMinOrder: Number(settingsForm.supplierMinOrder),
+      });
+      syncSettingsForm(data.settings || {});
+      setSuccess("Pricing settings saved.");
+    } catch (err) {
+      setError(err.message || "Could not save settings");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const handleApplyCommission = async () => {
+    const percent = settingsForm.commissionPercent;
+    if (
+      !window.confirm(
+        `Apply ${percent}% commission to ALL products and packs?\n\nSell price will become ceil(SRK cost × (1 + ${percent}%)).`
+      )
+    ) {
+      return;
+    }
+    setBusyId("apply");
+    setError("");
+    setSuccess("");
+    try {
+      // Persist rate first so apply uses the form value
+      await updateAdminSettings(token, {
+        commissionRate: Number(settingsForm.commissionPercent) / 100,
+        minOrderAmount: Number(settingsForm.minOrderAmount),
+        supplierMinOrder: Number(settingsForm.supplierMinOrder),
+      });
+      const data = await applyCommissionToCatalog(token);
+      clearCatalogCache();
+      setSuccess(
+        `${data.message} (${data.updatedProducts} products, ${data.updatedPacks} packs).`
+      );
+      if (tab === "catalog") await loadCatalog();
+    } catch (err) {
+      setError(err.message || "Could not apply commission");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const handleDraftChange = (key, field, value) => {
+    setDraftPrices((prev) => ({
+      ...prev,
+      [key]: {
+        ...prev[key],
+        [field]: value,
+      },
+    }));
+  };
+
+  const handleSaveCatalogItem = async (item) => {
+    const key = `${item.type}-${item.id}`;
+    const draft = draftPrices[key] || {};
+    setBusyId(key);
+    setError("");
+    setSuccess("");
+    try {
+      const data = await updateCatalogItem(token, item.id, {
+        type: item.type,
+        costPrice: Number(draft.costPrice),
+        sellPrice: Number(draft.sellPrice),
+      });
+      const updated = data.item;
+      if (item.type === "pack") {
+        setCatalogPacks((prev) =>
+          prev.map((row) => (row.id === item.id ? updated : row))
+        );
+      } else {
+        setCatalogProducts((prev) =>
+          prev.map((row) => (row.id === item.id ? updated : row))
+        );
+      }
+      setDraftPrices((prev) => ({
+        ...prev,
+        [key]: {
+          costPrice: String(updated.costPrice ?? ""),
+          sellPrice: String(updated.sellPrice ?? ""),
+        },
+      }));
+      clearCatalogCache();
+      setSuccess(`Updated ${updated.name}.`);
+    } catch (err) {
+      setError(err.message || "Could not update item");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const handleApplyItemCommission = async (item) => {
+    const key = `${item.type}-${item.id}`;
+    setBusyId(`${key}-apply`);
+    setError("");
+    setSuccess("");
+    try {
+      const draft = draftPrices[key] || {};
+      const data = await updateCatalogItem(token, item.id, {
+        type: item.type,
+        costPrice: Number(draft.costPrice ?? item.costPrice),
+        applyCommission: true,
+      });
+      const updated = data.item;
+      if (item.type === "pack") {
+        setCatalogPacks((prev) =>
+          prev.map((row) => (row.id === item.id ? updated : row))
+        );
+      } else {
+        setCatalogProducts((prev) =>
+          prev.map((row) => (row.id === item.id ? updated : row))
+        );
+      }
+      setDraftPrices((prev) => ({
+        ...prev,
+        [key]: {
+          costPrice: String(updated.costPrice ?? ""),
+          sellPrice: String(updated.sellPrice ?? ""),
+        },
+      }));
+      clearCatalogCache();
+      setSuccess(`Applied commission to ${updated.name}.`);
+    } catch (err) {
+      setError(err.message || "Could not apply commission");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const refreshCurrentTab = () => {
+    if (tab === "orders") return loadOrders();
+    if (tab === "enquiries") return loadEnquiries();
+    if (tab === "pricing") return loadSettings();
+    return loadCatalog();
   };
 
   if (!token) {
@@ -365,9 +637,7 @@ export default function AdminPage() {
             <button
               type="button"
               className="btn btn-outline"
-              onClick={() =>
-                tab === "orders" ? loadOrders() : loadEnquiries()
-              }
+              onClick={refreshCurrentTab}
               disabled={loading}
             >
               <i className="fa-solid fa-rotate-right"></i>
@@ -396,6 +666,23 @@ export default function AdminPage() {
           </button>
           <button
             type="button"
+            className={`admin-tab${tab === "pricing" ? " is-active" : ""}`}
+            onClick={() => setTab("pricing")}
+          >
+            <i className="fa-solid fa-percent"></i>
+            Commission
+          </button>
+          <button
+            type="button"
+            className={`admin-tab${tab === "catalog" ? " is-active" : ""}`}
+            onClick={() => setTab("catalog")}
+          >
+            <i className="fa-solid fa-tags"></i>
+            Catalog
+            <span>{catalogProducts.length + catalogPacks.length}</span>
+          </button>
+          <button
+            type="button"
             className={`admin-tab${tab === "enquiries" ? " is-active" : ""}`}
             onClick={() => setTab("enquiries")}
           >
@@ -411,8 +698,270 @@ export default function AdminPage() {
             {error}
           </p>
         ) : null}
+        {success ? (
+          <p className="admin-alert admin-alert--ok" role="status">
+            <i className="fa-solid fa-circle-check"></i>
+            {success}
+          </p>
+        ) : null}
 
-        {tab === "enquiries" ? (
+        {tab === "pricing" ? (
+          <section className="admin-section">
+            <div className="admin-section__head">
+              <div>
+                <h2>Commission & order rules</h2>
+                <p>
+                  SRK cost stays hidden. Customer pays sell price = cost + your
+                  commission. You reorder manually on SRK.
+                </p>
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="admin-loading">
+                <span className="admin-loading__spinner" />
+                Loading settings…
+              </div>
+            ) : (
+              <form className="admin-pricing-card" onSubmit={handleSaveSettings}>
+                <div className="admin-pricing-grid">
+                  <label>
+                    Commission %
+                    <input
+                      type="number"
+                      min="0"
+                      max="200"
+                      step="0.5"
+                      value={settingsForm.commissionPercent}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          commissionPercent: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <small>
+                      Example: 20% turns SRK ₹30 into Crackaro ₹36
+                    </small>
+                  </label>
+                  <label>
+                    Customer min order (₹)
+                    <input
+                      type="number"
+                      min="0"
+                      step="50"
+                      value={settingsForm.minOrderAmount}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          minOrderAmount: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <small>Your preferred floor (may be raised automatically)</small>
+                  </label>
+                  <label>
+                    SRK / supplier min (₹)
+                    <input
+                      type="number"
+                      min="0"
+                      step="50"
+                      value={settingsForm.supplierMinOrder}
+                      onChange={(e) =>
+                        setSettingsForm((prev) => ({
+                          ...prev,
+                          supplierMinOrder: e.target.value,
+                        }))
+                      }
+                      required
+                    />
+                    <small>Customer min auto-covers this via commission</small>
+                  </label>
+                </div>
+
+                <div className="admin-pricing-actions">
+                  <button
+                    type="submit"
+                    className="btn btn-primary"
+                    disabled={busyId === "settings"}
+                  >
+                    <i className="fa-solid fa-floppy-disk"></i>
+                    {busyId === "settings" ? "Saving…" : "Save settings"}
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    onClick={handleApplyCommission}
+                    disabled={busyId === "apply"}
+                  >
+                    <i className="fa-solid fa-wand-magic-sparkles"></i>
+                    {busyId === "apply"
+                      ? "Applying…"
+                      : "Apply commission to all products"}
+                  </button>
+                </div>
+
+                <div className="admin-pricing-hint">
+                  <p>
+                    <strong>Customer-side rule:</strong> checkout uses{" "}
+                    <em>effective min</em> = max(your customer min, SRK min ×
+                    (1 + commission)). So every paid order should cover SRK
+                    ₹{Number(settingsForm.supplierMinOrder || 2500).toLocaleString("en-IN")}{" "}
+                    cost — customers just see “add ₹X more”, never SRK.
+                  </p>
+                  <p>
+                    Rate{" "}
+                    <strong>
+                      {(Number(settings.commissionRate || 0) * 100).toFixed(1)}%
+                    </strong>
+                    · Saved customer min{" "}
+                    <strong>{formatPrice(settings.minOrderAmount)}</strong>
+                    · Effective checkout min{" "}
+                    <strong>
+                      {formatPrice(
+                        settings.effectiveMinOrderAmount ??
+                          Math.max(
+                            Number(settings.minOrderAmount) || 0,
+                            Math.ceil(
+                              (Number(settings.supplierMinOrder) || 2500) *
+                                (1 + (Number(settings.commissionRate) || 0))
+                            )
+                          )
+                      )}
+                    </strong>
+                    · SRK min{" "}
+                    <strong>{formatPrice(settings.supplierMinOrder)}</strong>
+                  </p>
+                </div>
+              </form>
+            )}
+          </section>
+        ) : tab === "catalog" ? (
+          <section className="admin-section">
+            <div className="admin-section__head">
+              <div>
+                <h2>Catalog pricing</h2>
+                <p>
+                  Cost = SRK price. Sell = what customers pay on Crackaro.
+                </p>
+              </div>
+            </div>
+
+            <div className="admin-toolbar">
+              <div className="admin-search">
+                <i className="fa-solid fa-magnifying-glass" aria-hidden="true"></i>
+                <input
+                  type="search"
+                  value={catalogQuery}
+                  onChange={(e) => setCatalogQuery(e.target.value)}
+                  placeholder="Search product or pack…"
+                  aria-label="Search catalog"
+                />
+              </div>
+            </div>
+
+            {loading ? (
+              <div className="admin-loading">
+                <span className="admin-loading__spinner" />
+                Loading catalog…
+              </div>
+            ) : null}
+
+            {!loading && catalogRows.length === 0 ? (
+              <div className="admin-empty-state">
+                <i className="fa-solid fa-box-open"></i>
+                <h3>No catalog items</h3>
+                <p>Run commission SQL / catalog seed, then refresh.</p>
+              </div>
+            ) : null}
+
+            <div className="admin-catalog-table">
+              <div className="admin-catalog-table__head">
+                <span>Item</span>
+                <span>Cost (SRK)</span>
+                <span>Sell</span>
+                <span>Profit / unit</span>
+                <span>Actions</span>
+              </div>
+              {catalogRows.map((item) => {
+                const key = `${item.type}-${item.id}`;
+                const draft = draftPrices[key] || {};
+                const cost = Number(draft.costPrice);
+                const sell = Number(draft.sellPrice);
+                const unitProfit =
+                  Number.isFinite(cost) && Number.isFinite(sell)
+                    ? sell - cost
+                    : item.unitProfit || 0;
+                const busy =
+                  busyId === key || busyId === `${key}-apply`;
+                return (
+                  <div key={key} className="admin-catalog-table__row">
+                    <div className="admin-catalog-table__name">
+                      <strong>{item.name}</strong>
+                      <small>
+                        {item.type}
+                        {item.category ? ` · ${item.category}` : ""}
+                        {item.active === false ? " · inactive" : ""}
+                      </small>
+                    </div>
+                    <label className="admin-catalog-field">
+                      <span className="sr-only">Cost</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={draft.costPrice ?? ""}
+                        onChange={(e) =>
+                          handleDraftChange(key, "costPrice", e.target.value)
+                        }
+                      />
+                    </label>
+                    <label className="admin-catalog-field">
+                      <span className="sr-only">Sell</span>
+                      <input
+                        type="number"
+                        min="0"
+                        step="1"
+                        value={draft.sellPrice ?? ""}
+                        onChange={(e) =>
+                          handleDraftChange(key, "sellPrice", e.target.value)
+                        }
+                      />
+                    </label>
+                    <span
+                      className={`admin-profit${
+                        unitProfit >= 0 ? " is-pos" : " is-neg"
+                      }`}
+                    >
+                      {formatPrice(unitProfit)}
+                    </span>
+                    <div className="admin-catalog-actions">
+                      <button
+                        type="button"
+                        className="btn btn-primary"
+                        disabled={busy}
+                        onClick={() => handleSaveCatalogItem(item)}
+                      >
+                        Save
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-outline"
+                        disabled={busy}
+                        onClick={() => handleApplyItemCommission(item)}
+                        title="Set sell from cost + global commission"
+                      >
+                        %
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        ) : tab === "enquiries" ? (
           <section className="admin-section">
             <div className="admin-section__head">
               <div>
@@ -482,6 +1031,10 @@ export default function AdminPage() {
               <article className="admin-stat admin-stat--accent">
                 <span>Active value</span>
                 <strong>{formatPrice(stats.revenue)}</strong>
+              </article>
+              <article className="admin-stat admin-stat--ok">
+                <span>Est. profit</span>
+                <strong>{formatPrice(stats.profit)}</strong>
               </article>
             </div>
 
@@ -577,6 +1130,9 @@ export default function AdminPage() {
                         </div>
                         <div className="admin-order__head-right">
                           <strong>{formatPrice(order.total)}</strong>
+                          <small className="admin-order__profit-chip">
+                            Profit {formatPrice(orderProfit(order))}
+                          </small>
                           <i
                             className={`fa-solid fa-chevron-${
                               open ? "up" : "down"
@@ -626,32 +1182,68 @@ export default function AdminPage() {
                               </p>
                             ) : null}
                           </div>
+                          <div>
+                            <h3>Middleman margin</h3>
+                            <p>
+                              Customer paid{" "}
+                              <strong>{formatPrice(order.total)}</strong>
+                              <br />
+                              SRK cost{" "}
+                              <strong>{formatPrice(orderCost(order))}</strong>
+                              <br />
+                              Your profit{" "}
+                              <strong className="admin-profit is-pos">
+                                {formatPrice(orderProfit(order))}
+                              </strong>
+                            </p>
+                            {Number(orderCost(order)) <
+                            Number(settings.supplierMinOrder || 2500) ? (
+                              <p className="admin-supplier-warn">
+                                Cost below SRK min{" "}
+                                {formatPrice(settings.supplierMinOrder)} —
+                                batch with other orders before placing on SRK.
+                              </p>
+                            ) : (
+                              <p className="admin-supplier-ok">
+                                Cost meets SRK minimum — safe to place alone.
+                              </p>
+                            )}
+                          </div>
                         </div>
 
                         <div className="admin-order__items">
                           <h3>Items ({(order.items || []).length})</h3>
-                          <div className="admin-items-table">
+                          <div className="admin-items-table admin-items-table--margin">
                             <div className="admin-items-table__head">
                               <span>Product</span>
                               <span>Qty</span>
-                              <span>Rate</span>
-                              <span>Amount</span>
+                              <span>Cost</span>
+                              <span>Sell</span>
+                              <span>Profit</span>
                             </div>
-                            {(order.items || []).map((item) => (
-                              <div
-                                key={item.cartId || `${item.name}-${item.qty}`}
-                                className="admin-items-table__row"
-                              >
-                                <span>{item.name}</span>
-                                <span>{item.qty}</span>
-                                <span>{formatPrice(item.priceValue || 0)}</span>
-                                <span>
-                                  {formatPrice(
-                                    (item.priceValue || 0) * (item.qty || 1)
-                                  )}
-                                </span>
-                              </div>
-                            ))}
+                            {(order.items || []).map((item) => {
+                              const qty = item.qty || 1;
+                              const sell = Number(item.priceValue) || 0;
+                              const cost = Number(item.costPrice) || 0;
+                              const profit =
+                                item.profit != null
+                                  ? Number(item.profit)
+                                  : (sell - cost) * qty;
+                              return (
+                                <div
+                                  key={item.cartId || `${item.name}-${item.qty}`}
+                                  className="admin-items-table__row"
+                                >
+                                  <span>{item.name}</span>
+                                  <span>{qty}</span>
+                                  <span>{formatPrice(cost)}</span>
+                                  <span>{formatPrice(sell)}</span>
+                                  <span className="admin-profit is-pos">
+                                    {formatPrice(profit)}
+                                  </span>
+                                </div>
+                              );
+                            })}
                           </div>
                         </div>
 

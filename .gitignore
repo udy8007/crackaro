@@ -9,3 +9,14 @@ client/dist/
 server/.env
 .vscode/
 client/src/_generated/
+
+# Accidental npm bin shims created in server/ during local installs
+server/nodemon
+server/nodemon.cmd
+server/nodemon.ps1
+server/nodetouch
+server/nodetouch.cmd
+server/nodetouch.ps1
+server/semver
+server/semver.cmd
+server/semver.ps1

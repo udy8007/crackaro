@@ -1,16 +1,36 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import FestivalBanner from "../components/layout/FestivalBanner";
 import Topbar from "../components/layout/Topbar";
 import Header from "../components/layout/Header";
 import Footer from "../components/layout/Footer";
 import CheckoutForm from "../components/cart/CheckoutForm";
+import { fetchPublicSettings } from "../api/settings";
 import { formatPrice, useCart } from "../context/CartContext";
 
 export default function CartPage() {
   const { items, count, total, removeItem, updateQty, clearCart } = useCart();
   const [step, setStep] = useState("cart");
   const [placedOrder, setPlacedOrder] = useState(null);
+  const [minOrderAmount, setMinOrderAmount] = useState(3000);
+
+  useEffect(() => {
+    fetchPublicSettings().then((data) => {
+      if (data?.minOrderAmount != null) {
+        setMinOrderAmount(Number(data.minOrderAmount) || 3000);
+      }
+    });
+  }, []);
+
+  const meetsMinOrder = total >= minOrderAmount;
+  const minOrderShortfall = Math.max(0, minOrderAmount - total);
+
+  useEffect(() => {
+    // Kick user back to cart if they drop below minimum while on checkout
+    if (step === "checkout" && items.length > 0 && !meetsMinOrder) {
+      setStep("cart");
+    }
+  }, [step, items.length, meetsMinOrder]);
 
   return (
     <>
@@ -119,6 +139,32 @@ export default function CartPage() {
                       <span>Total payable</span>
                       <strong>{formatPrice(total)}</strong>
                     </div>
+                    <div
+                      className={`cart-min-progress${
+                        meetsMinOrder ? " is-met" : ""
+                      }`}
+                    >
+                      <div className="cart-min-progress__head">
+                        <span>Minimum order {formatPrice(minOrderAmount)}</span>
+                        <strong>
+                          {meetsMinOrder
+                            ? "Ready to place"
+                            : `${formatPrice(minOrderShortfall)} to go`}
+                        </strong>
+                      </div>
+                      <div className="cart-min-progress__track">
+                        <span
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              minOrderAmount > 0
+                                ? (total / minOrderAmount) * 100
+                                : 0
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
                     <p className="cart-summary__note">
                       Pay the exact amount by UPI, then submit your UTR for admin
                       verification.
@@ -226,14 +272,75 @@ export default function CartPage() {
                       <span>Order total</span>
                       <strong>{formatPrice(total)}</strong>
                     </div>
+                    <div
+                      className={`cart-min-progress${
+                        meetsMinOrder ? " is-met" : ""
+                      }`}
+                    >
+                      <div className="cart-min-progress__head">
+                        <span>Minimum order {formatPrice(minOrderAmount)}</span>
+                        <strong>
+                          {meetsMinOrder
+                            ? "Ready to checkout"
+                            : `${formatPrice(minOrderShortfall)} to go`}
+                        </strong>
+                      </div>
+                      <div
+                        className="cart-min-progress__track"
+                        role="progressbar"
+                        aria-valuemin={0}
+                        aria-valuemax={minOrderAmount}
+                        aria-valuenow={Math.min(total, minOrderAmount)}
+                        aria-label="Progress toward minimum order"
+                      >
+                        <span
+                          style={{
+                            width: `${Math.min(
+                              100,
+                              minOrderAmount > 0
+                                ? (total / minOrderAmount) * 100
+                                : 0
+                            )}%`,
+                          }}
+                        />
+                      </div>
+                      {!meetsMinOrder ? (
+                        <p className="cart-summary__min-warn" role="alert">
+                          Add {formatPrice(minOrderShortfall)} more to place
+                          your order. Browse products and come back here.
+                        </p>
+                      ) : (
+                        <p className="cart-summary__min-ok">
+                          Minimum reached — you can place this order.
+                        </p>
+                      )}
+                    </div>
                     <button
                       type="button"
                       className="btn btn-primary btn-block btn-lg"
-                      onClick={() => setStep("checkout")}
+                      disabled={!meetsMinOrder}
+                      onClick={() => {
+                        if (!meetsMinOrder) return;
+                        setStep("checkout");
+                      }}
                     >
-                      Proceed to checkout
+                      {meetsMinOrder
+                        ? "Proceed to checkout"
+                        : `Add ${formatPrice(minOrderShortfall)} more`}
                     </button>
+                    {!meetsMinOrder ? (
+                      <Link
+                        to="/#products"
+                        className="btn btn-outline btn-block cart-summary__add-more"
+                      >
+                        <i className="fa-solid fa-plus"></i> Add more products
+                      </Link>
+                    ) : null}
                     <ul className="cart-summary__perks">
+                      <li>
+                        <i className="fa-solid fa-basket-shopping"></i> Min
+                        order {formatPrice(minOrderAmount)}
+                      </li>
                       <li>
                         <i className="fa-solid fa-shield-halved"></i> Secure UPI
                         payment

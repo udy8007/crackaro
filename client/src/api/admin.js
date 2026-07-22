@@ -65,3 +65,43 @@ export async function fetchAdminEnquiries(token) {
   });
   return parseJson(response);
 }
+
+export async function fetchAdminSettings(token) {
+  const response = await fetch(`${API_BASE}/settings/admin`, {
+    headers: authHeaders(token),
+  });
+  return parseJson(response);
+}
+
+export async function updateAdminSettings(token, payload) {
+  const response = await fetch(`${API_BASE}/settings`, {
+    method: "PATCH",
+    headers: authHeaders(token, true),
+    body: JSON.stringify(payload),
+  });
+  return parseJson(response);
+}
+
+export async function applyCommissionToCatalog(token) {
+  const response = await fetch(`${API_BASE}/settings/apply-commission`, {
+    method: "POST",
+    headers: authHeaders(token),
+  });
+  return parseJson(response);
+}
+
+export async function fetchAdminCatalog(token) {
+  const response = await fetch(`${API_BASE}/products/admin/catalog`, {
+    headers: authHeaders(token),
+  });
+  return parseJson(response);
+}
+
+export async function updateCatalogItem(token, id, payload) {
+  const response = await fetch(`${API_BASE}/products/${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: authHeaders(token, true),
+    body: JSON.stringify(payload),
+  });
+  return parseJson(response);
+}

@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { getPaymentConfig, placeOrder } from "../../api/orders";
 import { quoteShipping } from "../../api/shipping";
+import { fetchPublicSettings } from "../../api/settings";
 import { formatPrice, useCart } from "../../context/CartContext";
 
 const INITIAL = {
@@ -15,9 +16,10 @@ const INITIAL = {
 };
 
 export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
-  const { items, total: subtotal, clearCart } = useCart();
+  const { items, total: subtotal, clearCart, syncPricesFromCatalog } = useCart();
   const [form, setForm] = useState(INITIAL);
   const [config, setConfig] = useState(null);
+  const [minOrderAmount, setMinOrderAmount] = useState(3000);
   const [shipping, setShipping] = useState(null);
   const [shippingLoading, setShippingLoading] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -35,6 +37,11 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
           utrPattern: "^[A-Za-z0-9]{8,22}$",
         })
       );
+    fetchPublicSettings().then((data) => {
+      if (data?.minOrderAmount != null) {
+        setMinOrderAmount(Number(data.minOrderAmount) || 3000);
+      }
+    });
   }, []);
 
   useEffect(() => {
@@ -74,7 +81,10 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
 
   const shippingFee = shipping?.serviceable ? Number(shipping.fee) || 0 : 0;
   const grandTotal = subtotal + shippingFee;
-  const canPay = Boolean(shipping?.serviceable) && items.length > 0;
+  const meetsMinOrder = subtotal >= minOrderAmount;
+  const minOrderShortfall = Math.max(0, minOrderAmount - subtotal);
+  const canPay =
+    Boolean(shipping?.serviceable) && items.length > 0 && meetsMinOrder;
 
   const upiLink = useMemo(() => {
     if (!config || !canPay) return "";
@@ -121,6 +131,13 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
       return;
     }
 
+    if (!meetsMinOrder) {
+      setError(
+        `Minimum order is ${formatPrice(minOrderAmount)}. Add ${formatPrice(minOrderShortfall)} more to place your order.`
+      );
+      return;
+    }
+
     const utr = form.utr.trim().toUpperCase();
     if (!/^[A-Z0-9]{8,22}$/.test(utr)) {
       setError("UTR must be 8–22 letters/numbers (no spaces).");
@@ -129,10 +146,25 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
 
     setSubmitting(true);
     try {
+      // Keep cart totals aligned with DB before place (avoids stale localStorage prices)
+      const synced = await syncPricesFromCatalog({ force: true });
+      const latestItems = synced.items?.length ? synced.items : items;
+      const latestSubtotal = latestItems.reduce(
+        (sum, item) => sum + item.priceValue * item.qty,
+        0
+      );
+      if (latestSubtotal < minOrderAmount) {
+        const short = Math.max(0, minOrderAmount - latestSubtotal);
+        setError(
+          `Minimum order is ${formatPrice(minOrderAmount)}. Add ${formatPrice(short)} more to place your order.`
+        );
+        return;
+      }
+
       const result = await placeOrder({
         ...form,
         utr,
-        items: items.map((item) => ({
+        items: latestItems.map((item) => ({
           id: item.id,
           type: item.type,
           qty: item.qty,
@@ -142,6 +174,7 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
       onSuccess?.(result.order);
     } catch (err) {
       setError(err.message || "Could not place order");
+      syncPricesFromCatalog({ force: true });
     } finally {
       setSubmitting(false);
     }
@@ -281,12 +314,22 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
             <strong>{canPay ? formatPrice(grandTotal) : "—"}</strong>
           </div>
         </div>
+        {!meetsMinOrder ? (
+          <p className="checkout-shipping-note checkout-shipping-note--error">
+            Minimum order {formatPrice(minOrderAmount)}. Add{" "}
+            {formatPrice(minOrderShortfall)} more to checkout.
+          </p>
+        ) : null}
         <div className="checkout-qr-wrap">
           {qrUrl ? (
             <img src={qrUrl} alt="UPI payment QR code" className="checkout-qr" />
           ) : (
             <div className="checkout-qr checkout-qr--loading">
-              {canPay ? "Loading QR…" : "Enter a serviceable pincode for QR"}
+              {!meetsMinOrder
+                ? `Min order ${formatPrice(minOrderAmount)} required`
+                : canPay
+                  ? "Loading QR…"
+                  : "Enter a serviceable pincode for QR"}
             </div>
           )}
           <div className="checkout-upi-meta">
