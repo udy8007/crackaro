@@ -39,12 +39,6 @@ export default function CartPage() {
       <Header />
       <main className="cart-page">
         <div className="container">
-          <nav className="cart-breadcrumb" aria-label="Breadcrumb">
-            <Link to="/">Home</Link>
-            <span>/</span>
-            <span>Cart</span>
-          </nav>
-
           {placedOrder ? (
             <section className="cart-success-panel">
               <div className="cart-success-panel__icon">
@@ -82,19 +76,23 @@ export default function CartPage() {
           ) : (
             <>
               <div className="cart-page__head">
-                <div>
-                  <p className="eyebrow">Shopping cart</p>
+                <div className="cart-page__title-block">
                   <h1>
-                    {step === "checkout" ? "Checkout" : "Your cart"}
+                    {step === "checkout" ? "Checkout" : "Cart"}
+                    <span className="cart-page__count">{count}</span>
                   </h1>
-                  <p className="cart-page__sub">
-                    {count} item{count === 1 ? "" : "s"} · Secure UPI checkout
+                  <p className="cart-page__meta">
+                    <Link to="/">Home</Link>
+                    <span className="cart-page__meta-sep">/</span>
+                    <span>{step === "checkout" ? "Checkout" : "Cart"}</span>
+                    <span className="cart-page__meta-sep">·</span>
+                    Secure UPI checkout
                   </p>
                 </div>
                 {step === "checkout" ? (
                   <button
                     type="button"
-                    className="btn btn-outline"
+                    className="btn btn-outline cart-page__edit"
                     onClick={() => setStep("cart")}
                   >
                     <i className="fa-solid fa-arrow-left"></i> Edit cart
@@ -197,7 +195,13 @@ export default function CartPage() {
                             <div>
                               <h3>{item.name}</h3>
                               <p>
-                                {item.unit ? item.unit.replace("/", "").trim() : "item"}
+                                {item.unit
+                                  ? item.unit.replace("/", "").trim()
+                                  : "item"}
+                                <span className="cart-table__unit-price">
+                                  {" "}
+                                  · {formatPrice(item.priceValue)}
+                                </span>
                               </p>
                             </div>
                           </div>

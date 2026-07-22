@@ -1,10 +1,4 @@
-import { useEffect, useRef, useState } from "react";
-import {
-  armSkyshotIntroOnGesture,
-  playSkyshotIntro,
-  preloadSkyshotSound,
-  stopSkyshotIntro,
-} from "../../utils/skyshotSound";
+import { useEffect, useState } from "react";
 
 const SHINCHAN_FRAMES = [
   "/images/shinchan-cut-1.png?v=2",
@@ -14,7 +8,6 @@ const SHINCHAN_FRAMES = [
 ];
 
 export default function Hero() {
-  const heroRef = useRef(null);
   const [frame, setFrame] = useState(0);
 
   // Very slow flipbook (~0.8 fps)
@@ -29,72 +22,9 @@ export default function Hero() {
     return () => window.clearInterval(id);
   }, []);
 
-  useEffect(() => {
-    const el = heroRef.current;
-    if (!el) return;
-
-    let disposeGesture = () => {};
-    let visible = true;
-    let leaveTimer = 0;
-
-    preloadSkyshotSound();
-
-    const armUnlock = () => {
-      disposeGesture();
-      disposeGesture = armSkyshotIntroOnGesture();
-    };
-
-    armUnlock();
-    playSkyshotIntro();
-
-    const onHeroPointer = () => {
-      playSkyshotIntro();
-    };
-    el.addEventListener("pointerdown", onHeroPointer, { passive: true });
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        const nowVisible = entry.isIntersecting && entry.intersectionRatio >= 0.08;
-
-        if (nowVisible) {
-          if (leaveTimer) {
-            window.clearTimeout(leaveTimer);
-            leaveTimer = 0;
-          }
-          if (!visible) {
-            visible = true;
-            armUnlock();
-            playSkyshotIntro();
-          }
-          return;
-        }
-
-        if (visible && !leaveTimer) {
-          leaveTimer = window.setTimeout(() => {
-            leaveTimer = 0;
-            visible = false;
-            disposeGesture();
-            disposeGesture = () => {};
-            stopSkyshotIntro(false);
-          }, 400);
-        }
-      },
-      { threshold: [0, 0.08, 0.25, 0.5] }
-    );
-
-    observer.observe(el);
-
-    return () => {
-      observer.disconnect();
-      if (leaveTimer) window.clearTimeout(leaveTimer);
-      disposeGesture();
-      el.removeEventListener("pointerdown", onHeroPointer);
-    };
-  }, []);
-
   return (
     <>
-<section className="hero" id="home" ref={heroRef}>
+<section className="hero" id="home">
       {/* Top sky fill — celebration scene, bursts, garland */}
       <div className="hero-top-sky" aria-hidden="true">
         <div className="hero-top-glow"></div>
