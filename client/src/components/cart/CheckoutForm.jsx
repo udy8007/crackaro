@@ -17,6 +17,33 @@ const INITIAL = {
   utr: "",
 };
 
+const PAYMENT_DEFAULTS = {
+  upiId: "jananilakshmi201@oksbi",
+  payeeName: "Janani Jaishankar",
+  qrImageUrl: "/images/upi-qr.png",
+  note: "Pay via UPI and enter UTR below.",
+  utrHint: "8–22 alphanumeric characters.",
+  utrPattern: "^[A-Za-z0-9]{8,22}$",
+};
+
+function normalizePaymentConfig(data) {
+  const upiId = String(data?.upiId || "").trim();
+  const payeeName = String(data?.payeeName || "").trim();
+  const isPlaceholderUpi =
+    !upiId ||
+    /yourshop@upi|crackaro@upi/i.test(upiId);
+  const isPlaceholderPayee =
+    !payeeName || /^crackaro$/i.test(payeeName);
+
+  return {
+    ...PAYMENT_DEFAULTS,
+    ...data,
+    upiId: isPlaceholderUpi ? PAYMENT_DEFAULTS.upiId : upiId,
+    payeeName: isPlaceholderPayee ? PAYMENT_DEFAULTS.payeeName : payeeName,
+    qrImageUrl: data?.qrImageUrl || PAYMENT_DEFAULTS.qrImageUrl,
+  };
+}
+
 export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
   const { items, total: subtotal, clearCart, syncPricesFromCatalog } = useCart();
   const [form, setForm] = useState(INITIAL);
@@ -29,16 +56,8 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
 
   useEffect(() => {
     getPaymentConfig()
-      .then(setConfig)
-      .catch(() =>
-        setConfig({
-          upiId: "crackaro@upi",
-          payeeName: "Crackaro",
-          note: "Pay via UPI and enter UTR below.",
-          utrHint: "8–22 alphanumeric characters.",
-          utrPattern: "^[A-Za-z0-9]{8,22}$",
-        })
-      );
+      .then((data) => setConfig(normalizePaymentConfig(data)))
+      .catch(() => setConfig(PAYMENT_DEFAULTS));
     fetchPublicSettings().then((data) => {
       if (data?.minOrderAmount != null) {
         setMinOrderAmount(Number(data.minOrderAmount) || 3000);
@@ -101,9 +120,11 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
   }, [config, canPay, grandTotal]);
 
   const qrUrl = useMemo(() => {
+    if (!canPay) return "";
+    if (config?.qrImageUrl) return config.qrImageUrl;
     if (!upiLink) return "";
     return `https://api.qrserver.com/v1/create-qr-code/?size=220x220&data=${encodeURIComponent(upiLink)}`;
-  }, [upiLink]);
+  }, [canPay, config?.qrImageUrl, upiLink]);
 
   const updateField = (event) => {
     const { name, value } = event.target;
@@ -354,10 +375,12 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
           )}
           <div className="checkout-upi-meta">
             <p>
-              <strong>UPI ID:</strong> {config?.upiId || "—"}
+              <strong>UPI ID:</strong>{" "}
+              {config?.upiId || PAYMENT_DEFAULTS.upiId}
             </p>
             <p>
-              <strong>Payee:</strong> {config?.payeeName || "Crackaro"}
+              <strong>Payee:</strong>{" "}
+              {config?.payeeName || PAYMENT_DEFAULTS.payeeName}
             </p>
             <p>
               <strong>Amount:</strong>{" "}

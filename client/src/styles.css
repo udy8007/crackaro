@@ -6644,23 +6644,28 @@ body.has-min-order-dock .back-top {
 
 .checkout-qr-wrap {
   display: grid;
-  grid-template-columns: 140px 1fr;
-  gap: 12px;
+  grid-template-columns: minmax(220px, 280px) 1fr;
+  gap: 16px;
   align-items: center;
 }
 
 .checkout-qr {
-  width: 140px;
-  height: 140px;
-  border-radius: 10px;
-  border: 1px solid #fcd34d;
+  width: 100%;
+  max-width: 280px;
+  aspect-ratio: 1;
+  height: auto;
+  border-radius: 6px;
+  border: 1px solid #e5e7eb;
   background: #fff;
   object-fit: contain;
+  padding: 8px;
+  box-sizing: border-box;
 }
 
 .checkout-qr--loading {
   display: grid;
   place-items: center;
+  min-height: 220px;
   font-size: 12px;
   color: var(--muted);
 }
