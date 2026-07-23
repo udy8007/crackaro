@@ -8,7 +8,6 @@ import {
   useState,
 } from "react";
 import { fetchCatalog } from "../api/products";
-import { notifyNtfy } from "../utils/ntfy";
 
 const CartContext = createContext(null);
 const STORAGE_KEY = "crackaro_cart";
@@ -158,23 +157,12 @@ export function CartProvider({ children }) {
         },
       ]);
     }
-
-    notifyNtfy({
-      title: "Cart — added",
-      message: `${item.name || "Item"} ×${addQty} added to cart`,
-      tags: ["shopping_cart", "+1"],
-    });
   }, []);
 
   const removeItem = useCallback((cartId) => {
     const row = itemsRef.current.find((item) => item.cartId === cartId);
     if (!row) return;
     setItems(itemsRef.current.filter((item) => item.cartId !== cartId));
-    notifyNtfy({
-      title: "Cart — removed",
-      message: `${row.name} removed from cart`,
-      tags: ["wastebasket"],
-    });
   }, []);
 
   const updateQty = useCallback((cartId, qty) => {
@@ -184,11 +172,6 @@ export function CartProvider({ children }) {
 
     if (!Number.isFinite(next) || next < 1) {
       setItems(itemsRef.current.filter((item) => item.cartId !== cartId));
-      notifyNtfy({
-        title: "Cart — removed",
-        message: `${row.name} removed from cart`,
-        tags: ["wastebasket"],
-      });
       return;
     }
 
@@ -203,11 +186,6 @@ export function CartProvider({ children }) {
         item.cartId === cartId ? { ...item, qty: nextQty } : item
       )
     );
-    notifyNtfy({
-      title: "Cart — qty updated",
-      message: `${row.name} quantity → ${nextQty}`,
-      tags: ["arrows_counterclockwise"],
-    });
   }, []);
 
   const clearCart = useCallback(() => setItems([]), []);
