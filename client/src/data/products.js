@@ -1330,7 +1330,7 @@ export const PACKS = [
     buttonClass: "btn-outline",
     interest: "mayur",
     imageUrl: "/images/packs/mayur-gift-box.png",
-    itemCount: 30,
+    itemCount: 20,
     tag: "50% Off",
     tagClass: "tag-gold",
     items: [

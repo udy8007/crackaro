@@ -548,7 +548,7 @@ insert into public.packs (
     ]'::jsonb,
     '/images/packs/mayur-gift-box.png',
     1500,
-    30,
+    20,
     '50% Off',
     'tag-gold'
   )

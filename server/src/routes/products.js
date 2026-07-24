@@ -79,7 +79,7 @@ function mapPackPublic(row) {
     buttonClass: row.button_class,
     interest: row.interest,
     imageUrl: row.image_url || null,
-    itemCount: Number(row.item_count) || items.length || 0,
+    itemCount: items.length || Number(row.item_count) || 0,
     tag: row.tag || null,
     tagClass: row.tag_class || "tag-gold",
     items,
