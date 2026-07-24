@@ -8,6 +8,7 @@ import BackToTop from "../components/layout/BackToTop";
 import Hero from "../components/sections/Hero";
 import Trust from "../components/sections/Trust";
 import Products from "../components/sections/Products";
+import GiftPacks from "../components/sections/GiftPacks";
 import About from "../components/sections/About";
 import Safety from "../components/sections/Safety";
 import Testimonials from "../components/sections/Testimonials";
@@ -17,6 +18,7 @@ import useActiveSection from "../hooks/useActiveSection";
 const SECTION_IDS = [
   "home",
   "products",
+  "packs",
   "about",
   "safety",
   "contact",
@@ -39,6 +41,7 @@ export default function HomePage() {
           activeFilter={activeFilter}
           onFilterChange={setActiveFilter}
         />
+        <GiftPacks />
         <About />
         <Safety />
         <Testimonials />

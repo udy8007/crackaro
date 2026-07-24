@@ -141,9 +141,9 @@ export default function Contact() {
               <option value="">Select an option</option>
               <option value="retail">Retail Order</option>
               <option value="wholesale">Wholesale / Dealer</option>
-              <option value="family">Family Delight Pack</option>
-              <option value="diwali">Grand Diwali Pack</option>
-              <option value="wedding">Wedding Special Pack</option>
+              <option value="prime">Amazing Gift Pack Prime</option>
+              <option value="golden">Golden Pack</option>
+              <option value="mayur">Mayur Gift Box</option>
               <option value="custom">Custom Requirement</option>
             </select>
           </div>

@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "react-router-dom";
 import {
   applyCommissionToCatalog,
@@ -132,6 +132,8 @@ export default function AdminPage() {
   const [showProductForm, setShowProductForm] = useState(false);
   const [editingProductId, setEditingProductId] = useState("");
   const [productForm, setProductForm] = useState(EMPTY_PRODUCT_FORM);
+  const [imageEditTarget, setImageEditTarget] = useState(null);
+  const catalogImageInputRef = useRef(null);
 
   const handleAuthFailure = (message) => {
     if (/session|unauthorized|login/i.test(message || "")) {
@@ -557,6 +559,27 @@ export default function AdminPage() {
     }
   };
 
+  const applyCatalogItemUpdate = (item, updated) => {
+    const key = `${item.type}-${item.id}`;
+    if (item.type === "pack") {
+      setCatalogPacks((prev) =>
+        prev.map((row) => (row.id === item.id ? updated : row))
+      );
+    } else {
+      setCatalogProducts((prev) =>
+        prev.map((row) => (row.id === item.id ? updated : row))
+      );
+    }
+    setDraftPrices((prev) => ({
+      ...prev,
+      [key]: {
+        costPrice: String(updated.costPrice ?? ""),
+        sellPrice: String(updated.sellPrice ?? ""),
+        stock: String(updated.stock ?? prev[key]?.stock ?? 0),
+      },
+    }));
+  };
+
   const handleSaveCatalogItem = async (item) => {
     const key = `${item.type}-${item.id}`;
     const draft = draftPrices[key] || {};
@@ -570,28 +593,67 @@ export default function AdminPage() {
         sellPrice: Number(draft.sellPrice),
         stock: Number(draft.stock),
       });
-      const updated = data.item;
-      if (item.type === "pack") {
-        setCatalogPacks((prev) =>
-          prev.map((row) => (row.id === item.id ? updated : row))
-        );
-      } else {
-        setCatalogProducts((prev) =>
-          prev.map((row) => (row.id === item.id ? updated : row))
-        );
-      }
-      setDraftPrices((prev) => ({
-        ...prev,
-        [key]: {
-          costPrice: String(updated.costPrice ?? ""),
-          sellPrice: String(updated.sellPrice ?? ""),
-          stock: String(updated.stock ?? 0),
-        },
-      }));
+      applyCatalogItemUpdate(item, data.item);
       clearCatalogCache();
-      setSuccess(`Updated ${updated.name}.`);
+      setSuccess(`Updated ${data.item.name}.`);
     } catch (err) {
       setError(err.message || "Could not update item");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const openCatalogImagePicker = (item) => {
+    setImageEditTarget(item);
+    setError("");
+    setSuccess("");
+    requestAnimationFrame(() => {
+      catalogImageInputRef.current?.click();
+    });
+  };
+
+  const handleCatalogImageChange = async (event) => {
+    const file = event.target.files?.[0];
+    const item = imageEditTarget;
+    event.target.value = "";
+    setImageEditTarget(null);
+    if (!file || !item) return;
+
+    const key = `${item.type}-${item.id}`;
+    setBusyId(`${key}-image`);
+    setError("");
+    setSuccess("");
+    try {
+      const imageBase64 = await readImageAsDataUrl(file);
+      const data = await updateCatalogItem(token, item.id, {
+        type: item.type,
+        imageBase64,
+      });
+      applyCatalogItemUpdate(item, data.item);
+      clearCatalogCache();
+      setSuccess(`Image updated for ${data.item.name}.`);
+    } catch (err) {
+      setError(err.message || "Could not update image");
+    } finally {
+      setBusyId("");
+    }
+  };
+
+  const handleClearCatalogImage = async (item) => {
+    const key = `${item.type}-${item.id}`;
+    setBusyId(`${key}-image`);
+    setError("");
+    setSuccess("");
+    try {
+      const data = await updateCatalogItem(token, item.id, {
+        type: item.type,
+        imageUrl: "",
+      });
+      applyCatalogItemUpdate(item, data.item);
+      clearCatalogCache();
+      setSuccess(`Image removed from ${data.item.name}.`);
+    } catch (err) {
+      setError(err.message || "Could not remove image");
     } finally {
       setBusyId("");
     }
@@ -1306,6 +1368,16 @@ export default function AdminPage() {
               </div>
             ) : null}
 
+            <input
+              ref={catalogImageInputRef}
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/gif"
+              className="admin-catalog-image-input"
+              onChange={handleCatalogImageChange}
+              tabIndex={-1}
+              aria-hidden="true"
+            />
+
             <div className="admin-catalog-table admin-catalog-table--prices">
               <div className="admin-catalog-table__head">
                 <span>Product</span>
@@ -1325,7 +1397,10 @@ export default function AdminPage() {
                     ? sell - cost
                     : item.unitProfit || 0;
                 const busy =
-                  busyId === key || busyId === `${key}-apply`;
+                  busyId === key ||
+                  busyId === `${key}-apply` ||
+                  busyId === `${key}-image`;
+                const imageBusy = busyId === `${key}-image`;
                 return (
                   <div
                     key={key}
@@ -1335,17 +1410,55 @@ export default function AdminPage() {
                   >
                     <div className="admin-catalog-table__name">
                       <div className="admin-catalog-table__identity">
-                        {item.imageUrl ? (
-                          <img
-                            src={item.imageUrl}
-                            alt=""
-                            className="admin-catalog-thumb"
-                          />
-                        ) : (
-                          <span className="admin-catalog-thumb admin-catalog-thumb--empty">
-                            <i className={`fa-solid ${item.icon || "fa-bag-shopping"}`}></i>
-                          </span>
-                        )}
+                        <div className="admin-catalog-thumb-wrap">
+                          {item.imageUrl ? (
+                            <img
+                              src={item.imageUrl}
+                              alt=""
+                              className="admin-catalog-thumb"
+                            />
+                          ) : (
+                            <span className="admin-catalog-thumb admin-catalog-thumb--empty">
+                              <i
+                                className={`fa-solid ${
+                                  item.icon || "fa-bag-shopping"
+                                }`}
+                              ></i>
+                            </span>
+                          )}
+                          <div className="admin-catalog-thumb-actions">
+                            <button
+                              type="button"
+                              className="admin-catalog-thumb-btn"
+                              disabled={busy}
+                              onClick={() => openCatalogImagePicker(item)}
+                              title="Change image"
+                              aria-label={`Change image for ${item.name}`}
+                            >
+                              <i
+                                className={`fa-solid ${
+                                  imageBusy ? "fa-spinner fa-spin" : "fa-camera"
+                                }`}
+                                aria-hidden="true"
+                              ></i>
+                            </button>
+                            {item.imageUrl ? (
+                              <button
+                                type="button"
+                                className="admin-catalog-thumb-btn admin-catalog-thumb-btn--danger"
+                                disabled={busy}
+                                onClick={() => handleClearCatalogImage(item)}
+                                title="Remove image"
+                                aria-label={`Remove image for ${item.name}`}
+                              >
+                                <i
+                                  className="fa-solid fa-trash"
+                                  aria-hidden="true"
+                                ></i>
+                              </button>
+                            ) : null}
+                          </div>
+                        </div>
                         <div>
                           <strong>{item.name}</strong>
                           <small>

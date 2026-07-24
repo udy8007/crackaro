@@ -40,12 +40,37 @@ function mapProductPublic(row) {
   };
 }
 
+function normalizePackItems(items) {
+  if (!Array.isArray(items)) return [];
+  return items.map((item, index) => {
+    if (item && typeof item === "object") {
+      return {
+        name: String(item.name || "").trim(),
+        contains: String(item.contains || item.qty || "").trim(),
+      };
+    }
+    const text = String(item || "").trim();
+    const split = text.split(/\s*[—–-]\s*/);
+    if (split.length >= 2) {
+      return {
+        name: split.slice(0, -1).join(" - ").trim(),
+        contains: split[split.length - 1].trim(),
+      };
+    }
+    return { name: text || `Item ${index + 1}`, contains: "" };
+  });
+}
+
 function mapPackPublic(row) {
+  const items = normalizePackItems(row.items);
+  const mrp = row.mrp != null ? Number(row.mrp) : null;
   return {
     id: row.id,
     name: row.name,
     price: formatMoney(row.price),
     priceValue: Number(row.price),
+    mrp: mrp != null && Number.isFinite(mrp) ? mrp : null,
+    mrpLabel: mrp != null && Number.isFinite(mrp) ? formatMoney(mrp) : null,
     unit: row.unit || "/ pack",
     stock: Number(row.stock) || 0,
     active: Boolean(row.active),
@@ -53,7 +78,11 @@ function mapPackPublic(row) {
     featured: Boolean(row.featured),
     buttonClass: row.button_class,
     interest: row.interest,
-    items: Array.isArray(row.items) ? row.items : [],
+    imageUrl: row.image_url || null,
+    itemCount: Number(row.item_count) || items.length || 0,
+    tag: row.tag || null,
+    tagClass: row.tag_class || "tag-gold",
+    items,
   };
 }
 
@@ -388,16 +417,20 @@ router.patch("/:id", adminAuth, async (req, res) => {
       if (req.body?.tagClass !== undefined) {
         patch.tag_class = String(req.body.tagClass || "tag-gold").trim();
       }
-      if (req.body?.imageUrl !== undefined || req.body?.imageBase64) {
-        try {
-          patch.image_url = await storeProductImage({
-            productId: id,
-            imageBase64: req.body?.imageBase64,
-            imageUrl: req.body?.imageUrl,
-          });
-        } catch (imgErr) {
-          return res.status(400).json({ message: imgErr.message || "Image upload failed." });
-        }
+    }
+
+    if (req.body?.imageUrl !== undefined || req.body?.imageBase64) {
+      try {
+        patch.image_url = await storeProductImage({
+          productId: id,
+          imageBase64: req.body?.imageBase64,
+          imageUrl: req.body?.imageUrl,
+          folder: type === "pack" ? "packs" : "products",
+        });
+      } catch (imgErr) {
+        return res
+          .status(400)
+          .json({ message: imgErr.message || "Image upload failed." });
       }
     }
 

@@ -331,8 +331,9 @@ export default function Hero() {
                 <i className="fa-solid fa-bag-shopping"></i>
                 <span>Browse Products</span>
               </a>
-              <a href="#contact" className="btn btn-outline btn-lg">
-                <i className="fa-solid fa-headset"></i> Get a Quote
+              <a href="#packs" className="btn btn-outline btn-lg">
+                <i className="fa-solid fa-gift"></i>
+                <span>Gift Packs</span>
               </a>
             </div>
           </div>

@@ -33,6 +33,12 @@ create table if not exists public.packs (
   updated_at timestamptz not null default now()
 );
 
+alter table public.packs add column if not exists image_url text;
+alter table public.packs add column if not exists mrp numeric(12, 2);
+alter table public.packs add column if not exists item_count int;
+alter table public.packs add column if not exists tag text;
+alter table public.packs add column if not exists tag_class text;
+
 alter table public.orders add column if not exists subtotal numeric(12, 2);
 alter table public.orders add column if not exists shipping_fee numeric(12, 2) default 0;
 alter table public.orders add column if not exists shipping_zone text;
@@ -390,15 +396,162 @@ update public.products
 set active = false, updated_at = now()
 where id not in ('7-cm-electric-sparklers', '7-cm-colour-sparklers', '10-cm-electric-sparklers', '10-cm-colour-sparklers', '15-cm-electric-sparklers', '15-cm-green-sparklers', '15-cm-red-sparklers', '30-cm-electric-sparklers', '30-cm-colour-sparklers', '50-cm-electric-sparklers', '1-twinkling-star', 'twinkling-star-deluxe', 'green-colour-torch', 'deluxe-chakkar', 'special-chakkar', 'colour-swirls-special', 'kurkure-crackling-12-shot', '60-multi-colour-shot', 'bambaram', 'chota-fancy-1pcs', '2in-fancy', '2in-fancy-3-pcs', '2-inch-double-ball-1pcs', '2in-pipe-1-piece', '3in-fancy', '3-5in-fancy-1-piece', '4in-fancy-2-pcs', '5-inch-fancy-2-in-1', '3-pcs-sky-shot-2pcs', '7-shots', '30-shots-multi-colour', '120shots', 'helicopter-5pcs', 'rocket-bomb', 'whistling-rocket', 'flower-pot-asoka', 'flower-pots-special', 'flower-pots-deluxe-5pcs', 'colour-koti', 'colour-koti-deluxe', 'butterfly', 'rotate-sparklers', 'mini-siren', 'mega-siren-3pcs', 'magic-peacock', 'bada-peacock-5-face', 'naya-falls', 'hitler-kg-paper-bomb', 'kaki-ola-vedi-10pcs', 'hydro-bomb', 'classic-bomb', 'digital-bomb', 'paper-bomb-half-kg', 'paper-bomb-1-kg', '4in-gun-out', '6in-elephant-bomb', '2-75-kuruvi', '3-25-lakshmi-1-packet', '4-dlx-lakshmi', 'gold-lakshmi-1-packet', 'hulk-dlx', '5in-lion-1-packet', 'red-bijili-100', 'two-sound-1-packet', 'jallikattu-dlx-1-packet', 'roll-cap', 'wonder-throw-box-10pcs', 'pop-pop-50-boxes', 'beedi-blast-10-boxes', 'gun-with-3-ring-caps', 'ring-cap-100-packets', 'anaconda-10-boxes', 'selfie-stick-5pcs', 'colour-smoke', 'photo-flash', 'sky-lander-6-piece', 'kitkat', 'guitar', 'lighter-stick-2-pcs', 'drone-show', '28-wala', '100-wala', '200-wala', '1000-wala', '2000-wala', '5000-wala', '10000-wala');
 
+-- Retire legacy festival packs in favour of gift pack assortment
+update public.packs
+set active = false, updated_at = now()
+where id in ('family', 'diwali', 'wedding');
+
 insert into public.packs (
-  id, name, price, unit, stock, active, class_name, featured, button_class, interest, items
+  id, name, price, unit, stock, active, class_name, featured, button_class, interest,
+  items, image_url, mrp, item_count, tag, tag_class
 ) values
-  ('family', 'Family Delight', 1999, '/ pack', 50, true, 'pack-orange', false, 'btn-outline', 'family',
-   '["Sparklers & chakras","Flower pots (assorted)","Kids combo items","Gift packaging included"]'::jsonb),
-  ('diwali', 'Grand Diwali', 4999, '/ pack', 40, true, 'pack-magenta featured', true, 'btn-primary', 'diwali',
-   '["Premium aerial shots","Rockets & fountains","Sound crackers mix","Free delivery above ₹3,000"]'::jsonb),
-  ('wedding', 'Wedding Special', 9999, '/ pack', 25, true, 'pack-violet', false, 'btn-outline', 'wedding',
-   '["Multi-shot cakes","Stage entry fountains","Custom quantity support","Event coordination help"]'::jsonb)
+  (
+    'amazing-gift-pack-prime',
+    'Amazing Gift Pack Prime',
+    750,
+    '/ pack',
+    40,
+    true,
+    'pack-magenta',
+    false,
+    'btn-outline',
+    'prime',
+    '[
+      {"name":"GOLD LAKSHMI","contains":"1 PKT"},
+      {"name":"3 1/2 LAKSHMI","contains":"1 PKT"},
+      {"name":"2 3/4 KURUVU","contains":"1 PKT"},
+      {"name":"PARROT","contains":"1 PKT"},
+      {"name":"28 SARAMWALA","contains":"1 PKT"},
+      {"name":"BIJILI","contains":"1 PKT"},
+      {"name":"FLOWER POT BIG","contains":"1 PKT"},
+      {"name":"DISCO WHEEL","contains":"1 PIECE"},
+      {"name":"PHOTO FLASH","contains":"1 PIECE"},
+      {"name":"SHOWER","contains":"1 PIECE"},
+      {"name":"4\" LAKSHMI","contains":"1 PKT"},
+      {"name":"MILITARY BOOM","contains":"1 PIECE"},
+      {"name":"SNAKE TABLET","contains":"1 BOX"},
+      {"name":"ROLL CAP","contains":"1 PKT"},
+      {"name":"TWINKLING STAR","contains":"1 BOX"},
+      {"name":"PAPER VEDI","contains":"1 PIECE"},
+      {"name":"COLOUR KOTTI","contains":"1 PIECE"},
+      {"name":"ELECTRIC SPARKLER","contains":"1 BOX"},
+      {"name":"SELFIE STICK","contains":"1 PIECE"},
+      {"name":"SPARKLER","contains":"1 BOX"},
+      {"name":"RING CAP","contains":"1 PKT"},
+      {"name":"TUBE VEDI","contains":"1 BOX"},
+      {"name":"COLOUR SPARKLER","contains":"1 BOX"},
+      {"name":"POP POP","contains":"1 BOX"},
+      {"name":"GROUND CHAKRA BIG","contains":"1 BOX"},
+      {"name":"ELECTRIC SPARKLER","contains":"1 BOX"},
+      {"name":"MATCH GREEN","contains":"1 BOX"},
+      {"name":"MATCH SILVER","contains":"1 BOX"},
+      {"name":"MATCH RED","contains":"1 BOX"},
+      {"name":"ELECTRIC STONE","contains":"1 BOX"}
+    ]'::jsonb,
+    '/images/packs/amazing-gift-pack-prime.png',
+    1500,
+    30,
+    '50% Off',
+    'tag-gold'
+  ),
+  (
+    'golden-pack',
+    'Golden Pack',
+    1800,
+    '/ pack',
+    35,
+    true,
+    'pack-orange featured',
+    true,
+    'btn-primary',
+    'golden',
+    '[
+      {"name":"BIJILI","contains":"1 PKT"},
+      {"name":"GOLD LAKSHMI","contains":"1 PKT"},
+      {"name":"4\" LAKSHMI","contains":"1 PKT"},
+      {"name":"4\" JOKER","contains":"1 PKT"},
+      {"name":"3 1/2\" LAKSHMI","contains":"1 PKT"},
+      {"name":"3\" PARROT","contains":"1 PKT"},
+      {"name":"2 3/4\" KURUVI","contains":"1 PKT"},
+      {"name":"PAPPER BOOM","contains":"1 PIECE"},
+      {"name":"VALANGAIMAAN VEDI","contains":"2 PIECE"},
+      {"name":"MILITARY BOOM","contains":"1 PIECE"},
+      {"name":"28\" SARAM","contains":"1 PKT"},
+      {"name":"GUN POP","contains":"1 BOX"},
+      {"name":"ANGRY BIRD BLAST","contains":"1 BOX"},
+      {"name":"TUBE BLAST","contains":"1 BOX"},
+      {"name":"SNAKE BLAST","contains":"1 BOX"},
+      {"name":"7CM SPARKLER","contains":"1 BOX"},
+      {"name":"7CM ELECTRIC","contains":"1 BOX"},
+      {"name":"RING CAP","contains":"1 PKT"},
+      {"name":"MATCH RED","contains":"1 BOX"},
+      {"name":"MATCH SILVER","contains":"1 BOX"},
+      {"name":"MATCH GOLD STAR","contains":"1 BOX"},
+      {"name":"7 SHOT","contains":"1 PIECE"},
+      {"name":"POPS BIG","contains":"1 PIECE"},
+      {"name":"SELFIE STICK","contains":"1 PIECE"},
+      {"name":"ELECTRIC STONE","contains":"1 BOX"},
+      {"name":"GREEN SPARKLER","contains":"1 BOX"},
+      {"name":"CRACKLING","contains":"1 BOX"},
+      {"name":"COLOUR SPARKLER","contains":"1 BOX"},
+      {"name":"10 CM SPARKLER","contains":"1 BOX"},
+      {"name":"GROUND CHAKRA BIG","contains":"1 BOX"},
+      {"name":"F.POT BIG","contains":"1 BOX"},
+      {"name":"TWINKLING STAR","contains":"1 BOX"},
+      {"name":"ROLL CAP","contains":"1 PIECE"},
+      {"name":"PHOTO FLASH","contains":"1 PIECE"},
+      {"name":"DISCO WHEEL","contains":"1 PIECE"},
+      {"name":"GOLDEN ASARAFI","contains":"1 PIECE"},
+      {"name":"COLOUR KOTI","contains":"1 PIECE"},
+      {"name":"COLOUR BIRD","contains":"1 PIECE"},
+      {"name":"COLOUR SMOKE","contains":"1 PIECE"},
+      {"name":"POPS SMALL","contains":"1 PIECE"}
+    ]'::jsonb,
+    '/images/packs/golden-pack.png',
+    1800,
+    40,
+    '40 Items',
+    'tag-gold'
+  ),
+  (
+    'mayur-gift-box',
+    'Mayur Gift Box',
+    750,
+    '/ pack',
+    40,
+    true,
+    'pack-violet',
+    false,
+    'btn-outline',
+    'mayur',
+    '[
+      {"name":"BIJILI","contains":"1 PKT"},
+      {"name":"FLOWER POT BIG","contains":"1 PKT"},
+      {"name":"G. CHAKRA BIG","contains":"1 PKT"},
+      {"name":"DISCO WHEEL","contains":"1 PIECE"},
+      {"name":"RIDER RED","contains":"1 PIECE"},
+      {"name":"PHOTO FLASH","contains":"1 PIECE"},
+      {"name":"RIDER GREEN","contains":"1 PIECE"},
+      {"name":"28 SARAM","contains":"1 PKT"},
+      {"name":"RIDER STAR","contains":"1 PIECE"},
+      {"name":"1 1/2 TWINKLING STAR","contains":"1 PKT"},
+      {"name":"ROLL CAP","contains":"1 PKT"},
+      {"name":"COLOUR KOTI","contains":"1 PIECE"},
+      {"name":"3 1/2 LAKSHMI","contains":"1 PKT"},
+      {"name":"2 3/4 KURUVI","contains":"1 PKT"},
+      {"name":"555 BOMB","contains":"1 PIECE"},
+      {"name":"7 CM CRACKLING","contains":"1 BOX"},
+      {"name":"JEE BOOM BAA","contains":"1 BOX"},
+      {"name":"7 CM COLOUR","contains":"1 BOX"},
+      {"name":"PAPER VEDI","contains":"1 PIECE"},
+      {"name":"ELECTRIC STONE","contains":"1 BOX"}
+    ]'::jsonb,
+    '/images/packs/mayur-gift-box.png',
+    1500,
+    30,
+    '50% Off',
+    'tag-gold'
+  )
 on conflict (id) do update set
   name = excluded.name,
   price = excluded.price,
@@ -408,4 +561,10 @@ on conflict (id) do update set
   button_class = excluded.button_class,
   interest = excluded.interest,
   items = excluded.items,
+  image_url = excluded.image_url,
+  mrp = excluded.mrp,
+  item_count = excluded.item_count,
+  tag = excluded.tag,
+  tag_class = excluded.tag_class,
+  active = true,
   updated_at = now();

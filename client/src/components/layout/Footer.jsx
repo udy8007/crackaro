@@ -40,6 +40,9 @@ export default function Footer() {
               <a href="#products">Products</a>
             </li>
             <li>
+              <a href="#packs">Gift Packs</a>
+            </li>
+            <li>
               <a href="#safety">Safety</a>
             </li>
           </ul>
