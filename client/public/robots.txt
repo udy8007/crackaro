@@ -1,7 +1,7 @@
-# Crackaro — https://crackaro.in
+# Crackaro — https://www.crackaro.in
 User-agent: *
 Allow: /
 Disallow: /admin
 Disallow: /admin/
 
-Sitemap: https://crackaro.in/sitemap.xml
+Sitemap: https://www.crackaro.in/sitemap.xml
