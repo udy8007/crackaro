@@ -1,6 +1,6 @@
 /** Canonical site origin used for SEO (sitemap, OG, JSON-LD). */
 export const SITE_URL = (
-  import.meta.env.VITE_SITE_URL || "https://crackaro.vercel.app"
+  import.meta.env.VITE_SITE_URL || "https://crackaro.in"
 ).replace(/\/$/, "");
 
 export const SITE_NAME = "Crackaro";

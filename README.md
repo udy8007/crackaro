@@ -67,9 +67,9 @@ npm run dev
 
 ## Production
 
-- Site: https://crackaro.vercel.app/  
-- API base: https://crackaro.vercel.app/api  
-- Health: https://crackaro.vercel.app/api/health  
+- Site: https://crackaro.in/  
+- API base: https://crackaro.in/api  
+- Health: https://crackaro.in/api/health  
 
 Set the same `server/.env` keys in the Vercel project **Environment Variables** (Production). The frontend uses relative `/api` on this origin, so `VITE_API_URL` can stay empty.
 

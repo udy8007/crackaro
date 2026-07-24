@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://crackaro.vercel.app/</loc>
+    <loc>https://crackaro.in/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://crackaro.vercel.app/cart</loc>
+    <loc>https://crackaro.in/cart</loc>
     <changefreq>monthly</changefreq>
     <priority>0.4</priority>
   </url>
   <url>
-    <loc>https://crackaro.vercel.app/track</loc>
+    <loc>https://crackaro.in/track</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
