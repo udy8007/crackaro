@@ -155,19 +155,23 @@ async function decrementStock(lines) {
 router.get("/payment-config", (_req, res) => {
   const DEFAULT_UPI_ID = "jananilakshmi201@oksbi";
   const DEFAULT_PAYEE = "Janani Jaishankar";
+  const DEFAULT_MOBILE = "6369983862";
   const rawUpi = String(process.env.UPI_ID || "").trim();
   const rawPayee = String(process.env.UPI_NAME || "").trim();
+  const rawMobile = String(process.env.UPI_MOBILE || "").trim();
   const upiId =
     !rawUpi || /yourshop@upi|crackaro@upi/i.test(rawUpi)
       ? DEFAULT_UPI_ID
       : rawUpi;
   const payeeName =
     !rawPayee || /^crackaro$/i.test(rawPayee) ? DEFAULT_PAYEE : rawPayee;
+  const mobileNumber = rawMobile || DEFAULT_MOBILE;
   res.json({
     upiId,
     payeeName,
+    mobileNumber,
     qrImageUrl: process.env.UPI_QR_IMAGE || "/images/upi-qr.png",
-    note: "Pay the exact order total via UPI, then paste the UTR from your bank SMS / app.",
+    note: "Choose any QR code, UPI ID, or mobile number.",
     utrHint: "8–22 characters, letters and numbers only (no spaces).",
     utrPattern: "^[A-Za-z0-9]{8,22}$",
   });

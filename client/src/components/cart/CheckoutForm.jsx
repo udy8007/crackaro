@@ -20,8 +20,9 @@ const INITIAL = {
 const PAYMENT_DEFAULTS = {
   upiId: "jananilakshmi201@oksbi",
   payeeName: "Janani Jaishankar",
+  mobileNumber: "6369983862",
   qrImageUrl: "/images/upi-qr.png",
-  note: "Pay via UPI and enter UTR below.",
+  note: "Choose any QR code, UPI ID, or mobile number.",
   utrHint: "8–22 alphanumeric characters.",
   utrPattern: "^[A-Za-z0-9]{8,22}$",
 };
@@ -336,8 +337,8 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
 
       <div className="checkout-section checkout-payment">
         <h3>2. Pay via UPI</h3>
-        <p className="checkout-note">
-          {config?.note || "Scan QR, pay the exact amount, then enter UTR."}
+        <p className="checkout-note checkout-note--highlight">
+          {config?.note || "Choose any QR code, UPI ID, or mobile number."}
         </p>
         <div className="checkout-totals">
           <div>
@@ -379,6 +380,10 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
               {config?.upiId || PAYMENT_DEFAULTS.upiId}
             </p>
             <p>
+              <strong>Mobile:</strong>{" "}
+              {config?.mobileNumber || PAYMENT_DEFAULTS.mobileNumber}
+            </p>
+            <p>
               <strong>Payee:</strong>{" "}
               {config?.payeeName || PAYMENT_DEFAULTS.payeeName}
             </p>
@@ -386,11 +391,6 @@ export default function CheckoutForm({ onBack, onSuccess, compact = false }) {
               <strong>Amount:</strong>{" "}
               {canPay ? formatPrice(grandTotal) : "—"}
             </p>
-            {upiLink ? (
-              <a className="btn btn-outline btn-sm" href={upiLink}>
-                Open UPI app
-              </a>
-            ) : null}
           </div>
         </div>
         <div className="form-group">
