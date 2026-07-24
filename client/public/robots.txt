@@ -1,0 +1,7 @@
+# Crackaro — https://crackaro.vercel.app
+User-agent: *
+Allow: /
+Disallow: /admin
+Disallow: /admin/
+
+Sitemap: https://crackaro.vercel.app/sitemap.xml

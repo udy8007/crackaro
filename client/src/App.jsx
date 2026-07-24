@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage";
 import CartPage from "./pages/CartPage";
 import AdminPage from "./pages/AdminPage";
 import TrackOrderPage from "./pages/TrackOrderPage";
+import SeoHead from "./components/seo/SeoHead";
 import { notifySiteVisit } from "./utils/ntfy";
 
 export default function App() {
@@ -13,6 +14,7 @@ export default function App() {
 
   return (
     <BrowserRouter>
+      <SeoHead />
       <Routes>
         <Route path="/" element={<HomePage />} />
         <Route path="/cart" element={<CartPage />} />
